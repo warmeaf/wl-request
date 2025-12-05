@@ -23,6 +23,8 @@ export type ResponseHeaders = Record<string, string>;
 export interface RequestError extends Error {
   /** HTTP 状态码（如果可用） */
   status?: number;
+  /** HTTP 状态文本（如果可用） */
+  statusText?: string;
   /** 错误代码 */
   code?: string;
   /** 请求配置 */
