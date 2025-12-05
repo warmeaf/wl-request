@@ -2,7 +2,13 @@
 
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestAdapter, RequestConfig, Response } from '@wl-request/core';
-import { resetAdapters, resetConfig, setDefaultAdapter, useRequest } from '@wl-request/core';
+import {
+  RETRY_STRATEGY,
+  resetAdapters,
+  resetConfig,
+  setDefaultAdapter,
+  useRequest,
+} from '@wl-request/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe('功能模块集成测试', () => {
@@ -102,7 +108,7 @@ describe('功能模块集成测试', () => {
         retry: {
           count: 3,
           delay: 50,
-          strategy: 'exponential',
+          strategy: RETRY_STRATEGY.EXPONENTIAL,
         },
       });
 

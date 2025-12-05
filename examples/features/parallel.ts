@@ -5,7 +5,6 @@ import type { RequestConfig } from '@wl-request/core';
 import { configure, useParallelRequests } from '@wl-request/core';
 
 configure({
-  adapter: new FetchAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
@@ -22,7 +21,7 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
 }
 
 btnParallel.addEventListener('click', async () => {
-  log('开始并行请求示例...');
+  log('开始并行请求示例（默认 failFast: true，有一个失败就整体失败）...');
   btnParallel.disabled = true;
 
   const startTime = Date.now();
@@ -31,6 +30,8 @@ btnParallel.addEventListener('click', async () => {
     const { send } = useParallelRequests(
       [{ url: '/posts/1' }, { url: '/posts/2' }, { url: '/posts/3' }],
       {
+        // failFast: true 是默认值，有一个失败就整体失败
+        failFast: true,
         onBefore: () => {
           log('开始并行请求...');
         },
@@ -64,7 +65,7 @@ btnParallel.addEventListener('click', async () => {
 });
 
 btnPartialFailure.addEventListener('click', async () => {
-  log('开始部分失败处理示例...');
+  log('开始部分失败处理示例（failFast: false，允许部分失败，只返回成功的结果）...');
   btnPartialFailure.disabled = true;
 
   const errorAdapter = {
@@ -85,8 +86,13 @@ btnPartialFailure.addEventListener('click', async () => {
         { url: '/posts/3', adapter: errorAdapter },
       ],
       {
+        // failFast: false 允许部分失败，只返回成功的结果，不抛出错误
+        failFast: false,
         onSuccess: (results) => {
           log(`成功请求数: ${results.length}`, 'success');
+          results.forEach((result, index) => {
+            log(`成功请求 ${index + 1}: ${JSON.stringify(result.data, null, 2)}`, 'success');
+          });
         },
         onError: (errors) => {
           log(`失败请求数: ${errors.length}`, 'error');
@@ -97,8 +103,11 @@ btnPartialFailure.addEventListener('click', async () => {
       }
     );
 
-    await send();
+    // failFast: false 时，即使有错误也不会抛出异常
+    const results = await send();
+    log(`最终返回 ${results.length} 个成功的结果`, 'success');
   } catch (error) {
+    // failFast: false 时不应该进入这里
     log(`请求失败: ${error instanceof Error ? error.message : String(error)}`, 'error');
   } finally {
     btnPartialFailure.disabled = false;

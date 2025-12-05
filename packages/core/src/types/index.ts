@@ -39,6 +39,18 @@ export interface RequestError extends Error {
 export type RetryStrategy = 'exponential' | 'linear' | 'fixed';
 
 /**
+ * 重试策略常量
+ */
+export const RETRY_STRATEGY = {
+  /** 指数退避策略 */
+  EXPONENTIAL: 'exponential',
+  /** 线性退避策略 */
+  LINEAR: 'linear',
+  /** 固定延迟策略 */
+  FIXED: 'fixed',
+} as const;
+
+/**
  * 重试条件函数
  * @param error 请求错误
  * @param retryCount 当前重试次数

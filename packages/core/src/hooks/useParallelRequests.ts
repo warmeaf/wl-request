@@ -17,6 +17,8 @@ export interface ParallelRequestsHookConfig<T = unknown> {
   onError?: (errors: RequestError[]) => void | Promise<void>;
   /** 所有请求完成后的钩子 */
   onFinally?: () => void | Promise<void>;
+  /** 失败策略：true=有一个失败就整体失败（默认），false=允许部分失败，只返回成功的结果 */
+  failFast?: boolean;
 }
 
 /**
@@ -68,10 +70,13 @@ export function useParallelRequests<T = unknown>(
         if (hookConfig?.onError) {
           await hookConfig.onError(errors);
         }
-        throw errors[0];
+
+        if (hookConfig?.failFast !== false) {
+          throw errors[0];
+        }
       }
 
-      if (hookConfig?.onSuccess) {
+      if (successResults.length > 0 && hookConfig?.onSuccess) {
         await hookConfig.onSuccess(successResults);
       }
 

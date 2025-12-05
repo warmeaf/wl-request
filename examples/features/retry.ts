@@ -1,10 +1,9 @@
 // 重试功能示例
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
-import { configure, useRequest } from '@wl-request/core';
+import type { RequestAdapter, RequestConfig, Response } from '@wl-request/core';
+import { configure, RETRY_STRATEGY, useRequest } from '@wl-request/core';
 
 configure({
-  adapter: new FetchAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
@@ -29,8 +28,8 @@ btnRetry.addEventListener('click', async () => {
   btnRetry.disabled = true;
   attemptCount = 0;
 
-  const mockAdapter = {
-    async request() {
+  const mockAdapter: RequestAdapter = {
+    async request<T = unknown>(_config: RequestConfig<T>): Promise<Response<T>> {
       attemptCount++;
       log(`尝试第 ${attemptCount} 次请求...`);
       if (attemptCount < 3) {
@@ -40,7 +39,7 @@ btnRetry.addEventListener('click', async () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        data: { message: '请求成功！', attempts: attemptCount },
+        data: { message: '请求成功！', attempts: attemptCount } as T,
       };
     },
   };
@@ -78,8 +77,8 @@ btnExponentialBackoff.addEventListener('click', async () => {
   const delays: number[] = [];
   let lastTime = Date.now();
 
-  const mockAdapter = {
-    async request() {
+  const mockAdapter: RequestAdapter = {
+    async request<T = unknown>(_config: RequestConfig<T>): Promise<Response<T>> {
       const currentTime = Date.now();
       if (lastTime > 0 && attemptCount > 0) {
         const delay = currentTime - lastTime;
@@ -97,7 +96,7 @@ btnExponentialBackoff.addEventListener('click', async () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        data: { message: '请求成功！', delays },
+        data: { message: '请求成功！', delays } as T,
       };
     },
   };
@@ -109,7 +108,7 @@ btnExponentialBackoff.addEventListener('click', async () => {
       retry: {
         count: 3,
         delay: 200,
-        strategy: 'exponential',
+        strategy: RETRY_STRATEGY.EXPONENTIAL,
       },
       onSuccess: (response) => {
         log(`请求成功: ${JSON.stringify(response.data, null, 2)}`, 'success');

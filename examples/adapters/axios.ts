@@ -1,15 +1,15 @@
-// Fetch 适配器示例
+// Axios 适配器示例
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
+import { AxiosAdapter } from '@wl-request/adapter-axios';
 import { configure, useRequest } from '@wl-request/core';
 
 configure({
-  adapter: new FetchAdapter(),
+  adapter: new AxiosAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
 const output = document.getElementById('output') as HTMLDivElement;
-const btnFetch = document.getElementById('btn-fetch') as HTMLButtonElement;
+const btnAxios = document.getElementById('btn-axios') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
@@ -19,9 +19,9 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   output.scrollTop = output.scrollHeight;
 }
 
-btnFetch.addEventListener('click', async () => {
-  log('开始 Fetch 适配器示例...');
-  btnFetch.disabled = true;
+btnAxios.addEventListener('click', async () => {
+  log('开始 Axios 适配器示例...');
+  btnAxios.disabled = true;
 
   try {
     const { send } = useRequest({
@@ -38,7 +38,7 @@ btnFetch.addEventListener('click', async () => {
   } catch (error) {
     log(`请求失败: ${error instanceof Error ? error.message : String(error)}`, 'error');
   } finally {
-    btnFetch.disabled = false;
+    btnAxios.disabled = false;
   }
 });
 
@@ -46,4 +46,4 @@ btnClear.addEventListener('click', () => {
   output.innerHTML = '';
 });
 
-log('wl-request Fetch 适配器示例已加载，点击按钮开始测试。');
+log('wl-request Axios 适配器示例已加载，点击按钮开始测试。');

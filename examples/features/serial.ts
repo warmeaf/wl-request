@@ -5,7 +5,6 @@ import type { RequestConfig } from '@wl-request/core';
 import { configure, useSerialRequests } from '@wl-request/core';
 
 configure({
-  adapter: new FetchAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 

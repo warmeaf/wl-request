@@ -1,19 +1,19 @@
-// 内存缓存适配器示例
+// IndexedDB 缓存适配器示例
 
 import { FetchAdapter } from '@wl-request/adapter-fetch';
-import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
+import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useRequest } from '@wl-request/core';
 
-const memoryCacheAdapter = new MemoryCacheAdapter();
+const indexedDBCacheAdapter = new IndexedDBCacheAdapter();
 
 configure({
-  cacheAdapter: memoryCacheAdapter,
+  cacheAdapter: indexedDBCacheAdapter,
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
 const output = document.getElementById('output') as HTMLDivElement;
-const btnMemoryCache = document.getElementById('btn-memory-cache') as HTMLButtonElement;
+const btnIndexedDBCache = document.getElementById('btn-indexeddb-cache') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
@@ -25,9 +25,9 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
 
 let requestCount = 0;
 
-btnMemoryCache.addEventListener('click', async () => {
-  log('开始内存缓存适配器示例...');
-  btnMemoryCache.disabled = true;
+btnIndexedDBCache.addEventListener('click', async () => {
+  log('开始 IndexedDB 缓存适配器示例...');
+  btnIndexedDBCache.disabled = true;
   requestCount = 0;
 
   const countingAdapter = {
@@ -44,9 +44,9 @@ btnMemoryCache.addEventListener('click', async () => {
       url: '/posts/1',
       adapter: countingAdapter,
       cache: {
-        key: 'post-1-memory',
+        key: 'post-1-indexeddb',
         ttl: 5000,
-        cacheAdapter: memoryCacheAdapter,
+        cacheAdapter: indexedDBCacheAdapter,
       },
       onSuccess: (response) => {
         log(`请求成功: ${JSON.stringify(response.data, null, 2)}`, 'success');
@@ -63,7 +63,7 @@ btnMemoryCache.addEventListener('click', async () => {
   } catch (error) {
     log(`请求失败: ${error instanceof Error ? error.message : String(error)}`, 'error');
   } finally {
-    btnMemoryCache.disabled = false;
+    btnIndexedDBCache.disabled = false;
   }
 });
 
@@ -71,4 +71,4 @@ btnClear.addEventListener('click', () => {
   output.innerHTML = '';
 });
 
-log('wl-request 内存缓存适配器示例已加载，点击按钮开始测试。');
+log('wl-request IndexedDB 缓存适配器示例已加载，点击按钮开始测试。');

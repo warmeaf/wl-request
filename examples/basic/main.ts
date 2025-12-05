@@ -1,10 +1,8 @@
 // 基础示例
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
 import { configure, useRequest } from '@wl-request/core';
 
 configure({
-  adapter: new FetchAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
   headers: {
     'Content-Type': 'application/json',

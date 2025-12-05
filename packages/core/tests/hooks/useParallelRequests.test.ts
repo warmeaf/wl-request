@@ -282,6 +282,366 @@ describe('useParallelRequests', () => {
     });
   });
 
+  describe('failFast 配置', () => {
+    describe('failFast: true（默认行为）', () => {
+      it('部分请求失败时应该抛出错误', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: true });
+
+        await expect(send()).rejects.toThrow();
+      });
+
+      it('所有请求失败时应该抛出错误', async () => {
+        const error1 = new Error('Error 1');
+        const error2 = new Error('Error 2');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error1;
+            }
+            if (config.url === '/api/posts') {
+              throw error2;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: true });
+
+        await expect(send()).rejects.toThrow();
+      });
+
+      it('应该调用 onError 钩子', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const onError = vi.fn();
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: true, onError });
+
+        try {
+          await send();
+        } catch {
+          // 忽略错误
+        }
+
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onError).toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ message: 'Request failed' })])
+        );
+      });
+
+      it('不应该调用 onSuccess 钩子', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const onSuccess = vi.fn();
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: true, onSuccess });
+
+        try {
+          await send();
+        } catch {
+          // 忽略错误
+        }
+
+        expect(onSuccess).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('failFast: false（允许部分失败）', () => {
+      it('部分请求失败时应该返回成功的结果，不抛出错误', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { url: config.url } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: false });
+
+        const results = await send();
+
+        expect(results).toHaveLength(1);
+        expect(results[0].data).toEqual({ url: '/api/posts' });
+      });
+
+      it('所有请求失败时应该返回空数组，不抛出错误', async () => {
+        const error1 = new Error('Error 1');
+        const error2 = new Error('Error 2');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error1;
+            }
+            if (config.url === '/api/posts') {
+              throw error2;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: false });
+
+        const results = await send();
+
+        expect(results).toHaveLength(0);
+      });
+
+      it('应该调用 onError 钩子（如果有错误）', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const onError = vi.fn();
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: false, onError });
+
+        await send();
+
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onError).toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ message: 'Request failed' })])
+        );
+      });
+
+      it('应该调用 onSuccess 钩子（如果有成功的结果）', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { url: config.url } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const onSuccess = vi.fn();
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: false, onSuccess });
+
+        await send();
+
+        expect(onSuccess).toHaveBeenCalledTimes(1);
+        const results = onSuccess.mock.calls[0][0];
+        expect(results).toHaveLength(1);
+        expect(results[0].data).toEqual({ url: '/api/posts' });
+      });
+
+      it('返回的结果应该只包含成功的请求', async () => {
+        const error1 = new Error('Error 1');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error1;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { url: config.url } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [
+          { url: '/api/users' },
+          { url: '/api/posts' },
+          { url: '/api/comments' },
+        ];
+
+        const { send } = useParallelRequests(configs, { failFast: false });
+
+        const results = await send();
+
+        expect(results).toHaveLength(2);
+        expect(results[0].data).toEqual({ url: '/api/posts' });
+        expect(results[1].data).toEqual({ url: '/api/comments' });
+      });
+    });
+
+    describe('边界情况', () => {
+      it('failFast: false 且所有请求都成功时，行为应该与 failFast: true 一致', async () => {
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { url: config.url } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, { failFast: false });
+
+        const results = await send();
+
+        expect(results).toHaveLength(2);
+        expect(results[0].data).toEqual({ url: '/api/users' });
+        expect(results[1].data).toEqual({ url: '/api/posts' });
+      });
+
+      it('failFast: false 且所有请求都失败时，应该返回空数组', async () => {
+        const error1 = new Error('Error 1');
+        const error2 = new Error('Error 2');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error1;
+            }
+            if (config.url === '/api/posts') {
+              throw error2;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const onError = vi.fn();
+        const onSuccess = vi.fn();
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs, {
+          failFast: false,
+          onError,
+          onSuccess,
+        });
+
+        const results = await send();
+
+        expect(results).toHaveLength(0);
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onSuccess).not.toHaveBeenCalled();
+      });
+
+      it('默认行为（不设置 failFast）应该等同于 failFast: true', async () => {
+        const error = new Error('Request failed');
+        mockAdapter = {
+          async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
+            if (config.url === '/api/users') {
+              throw error;
+            }
+            return {
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              data: { message: 'success' } as T,
+            };
+          },
+        };
+        setDefaultAdapter(mockAdapter);
+
+        const configs: RequestConfig[] = [{ url: '/api/users' }, { url: '/api/posts' }];
+
+        const { send } = useParallelRequests(configs);
+
+        await expect(send()).rejects.toThrow();
+      });
+    });
+  });
+
   describe('取消功能', () => {
     it('应该能够取消所有正在进行的请求', async () => {
       mockAdapter = {
