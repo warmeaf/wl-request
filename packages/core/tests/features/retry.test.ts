@@ -36,6 +36,9 @@ describe('retryRequest', () => {
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
 
+      // 等待微任务队列清空
+      await Promise.resolve();
+
       await expect(resultPromise).rejects.toThrow('Request failed');
       expect(requestFn).toHaveBeenCalledTimes(4); // 初始请求 + 3次重试
     });
@@ -96,6 +99,9 @@ describe('retryRequest', () => {
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
 
+      // 等待微任务队列清空
+      await Promise.resolve();
+
       await expect(resultPromise).rejects.toThrow();
     });
   });
@@ -128,6 +134,9 @@ describe('retryRequest', () => {
 
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
+
+      // 等待微任务队列清空
+      await Promise.resolve();
 
       await expect(resultPromise).rejects.toThrow();
     });
@@ -162,6 +171,9 @@ describe('retryRequest', () => {
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
 
+      // 等待微任务队列清空
+      await Promise.resolve();
+
       await expect(resultPromise).rejects.toThrow();
     });
   });
@@ -188,6 +200,9 @@ describe('retryRequest', () => {
 
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
+
+      // 等待微任务队列清空
+      await Promise.resolve();
 
       await expect(resultPromise).rejects.toThrow();
     });
@@ -223,6 +238,9 @@ describe('retryRequest', () => {
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
 
+      // 等待微任务队列清空
+      await Promise.resolve();
+
       // 第二次失败是服务器错误，不应该重试
       await expect(resultPromise).rejects.toEqual(error2);
       expect(requestFn).toHaveBeenCalledTimes(2); // 不应该有第三次调用
@@ -247,6 +265,9 @@ describe('retryRequest', () => {
 
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
+
+      // 等待微任务队列清空
+      await Promise.resolve();
 
       // 第3次重试时条件不满足，应该停止
       await expect(resultPromise).rejects.toThrow();
@@ -308,10 +329,16 @@ describe('retryRequest', () => {
 
       const resultPromise = retryRequest(requestFn, retryConfig);
 
-      await vi.advanceTimersByTimeAsync(600); // 等待所有重试完成
+      // 推进时间以完成所有重试
+      await vi.advanceTimersByTimeAsync(100); // 第一次重试
+      await vi.advanceTimersByTimeAsync(100); // 第二次重试
+      await vi.advanceTimersByTimeAsync(100); // 第三次重试
 
       // 等待所有异步操作完成
       await vi.runAllTimersAsync();
+
+      // 等待微任务队列清空
+      await Promise.resolve();
 
       await expect(resultPromise).rejects.toThrow('Final error');
       expect(requestFn).toHaveBeenCalledTimes(4);
@@ -329,9 +356,7 @@ describe('retryRequest', () => {
 
       const resultPromise = retryRequest(requestFn, retryConfig);
 
-      // 等待所有异步操作完成
-      await vi.runAllTimersAsync();
-
+      // 立即等待 Promise rejection，不需要等待定时器
       await expect(resultPromise).rejects.toThrow();
       expect(requestFn).toHaveBeenCalledTimes(1);
     });

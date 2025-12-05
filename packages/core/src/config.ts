@@ -33,6 +33,7 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial
       }
 
       // 如果源值和目标值都是对象，且不是数组，进行深度合并
+      // 但对于适配器实例（adapter、cacheAdapter），直接覆盖（保留原型链上的方法）
       if (
         typeof sourceValue === 'object' &&
         typeof targetValue === 'object' &&
@@ -41,10 +42,16 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial
         !Array.isArray(sourceValue) &&
         !Array.isArray(targetValue)
       ) {
-        result[key] = deepMerge(
-          targetValue as Record<string, unknown>,
-          sourceValue as Record<string, unknown>
-        ) as T[Extract<keyof T, string>];
+        // adapter 和 cacheAdapter 是类实例，需要保留原型链，直接覆盖
+        if (key === 'adapter' || key === 'cacheAdapter') {
+          result[key] = sourceValue as T[Extract<keyof T, string>];
+        } else {
+          // 其他对象类型进行深度合并
+          result[key] = deepMerge(
+            targetValue as Record<string, unknown>,
+            sourceValue as Record<string, unknown>
+          ) as T[Extract<keyof T, string>];
+        }
       } else {
         // 否则直接覆盖
         result[key] = sourceValue as T[Extract<keyof T, string>];
@@ -103,12 +110,19 @@ export function mergeConfig<T = unknown>(
       // 如果本地配置中不存在该属性，使用全局配置的值
       if (localValue === undefined) {
         // 对于对象类型（headers、params），需要深度复制
+        // 但对于适配器实例（adapter、cacheAdapter），直接赋值（保留原型链上的方法）
         if (
           typeof globalValue === 'object' &&
           globalValue !== null &&
           !Array.isArray(globalValue)
         ) {
-          (result as Record<string, unknown>)[key] = { ...globalValue };
+          // adapter 和 cacheAdapter 是类实例，需要保留原型链，直接赋值
+          if (key === 'adapter' || key === 'cacheAdapter') {
+            (result as Record<string, unknown>)[key] = globalValue;
+          } else {
+            // 其他对象类型（headers、params）使用浅拷贝
+            (result as Record<string, unknown>)[key] = { ...globalValue };
+          }
         } else {
           (result as Record<string, unknown>)[key] = globalValue;
         }

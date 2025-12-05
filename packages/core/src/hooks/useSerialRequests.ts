@@ -11,8 +11,8 @@ import type { RequestError } from '../types';
 export interface SerialRequestsHookConfig<T = unknown> {
   /** 所有请求开始前的钩子 */
   onBefore?: () => void | Promise<void>;
-  /** 每个请求成功后的钩子 */
-  onSuccess?: (result: Response<T>, index: number) => void | Promise<void>;
+  /** 所有请求成功后的钩子 */
+  onSuccess?: (results: Response<T>[]) => void | Promise<void>;
   /** 某个请求失败时的钩子 */
   onError?: (error: RequestError, index: number) => void | Promise<void>;
   /** 所有请求完成后的钩子 */
@@ -52,20 +52,14 @@ export function useSerialRequests<T = unknown>(
         await hookConfig.onBefore();
       }
 
-      // 收集所有请求的 send 方法，并包装以支持钩子
+      // 收集所有请求的 send 方法，并包装以支持错误钩子
       const requestFns = requestInstances.map(
         (instance, index) => async (): Promise<Response<T>> => {
           try {
             const result = await instance.send();
-
-            // 调用整体的 onSuccess 钩子
-            if (hookConfig?.onSuccess) {
-              await hookConfig.onSuccess(result, index);
-            }
-
             return result;
           } catch (error) {
-            // 调用整体的 onError 钩子
+            // 调用 onError 钩子
             if (hookConfig?.onError) {
               await hookConfig.onError(error as RequestError, index);
             }
@@ -78,6 +72,11 @@ export function useSerialRequests<T = unknown>(
 
       // 串行执行所有请求
       const results = await serialRequests(requestFns);
+
+      // 所有请求都成功，调用 onSuccess 钩子
+      if (hookConfig?.onSuccess) {
+        await hookConfig.onSuccess(results);
+      }
 
       return results;
     } finally {

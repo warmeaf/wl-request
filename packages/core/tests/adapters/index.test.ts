@@ -151,9 +151,14 @@ describe('适配器抽象层', () => {
       resetAdapters();
 
       const proxyAdapter = getDefaultAdapter();
-      const result = proxyAdapter.request({ url: '/test' });
+      // 使用完整 URL，避免 Node.js 环境中的 URL 解析错误
+      const result = proxyAdapter.request({ url: 'http://localhost/test' });
 
       expect(result).toBeInstanceOf(Promise);
+      // 捕获可能的错误，避免 unhandled rejection
+      result.catch(() => {
+        // 忽略错误，这个测试只关心返回的是 Promise
+      });
     });
   });
 

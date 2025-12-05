@@ -1,6 +1,9 @@
 // wl-request 核心包入口文件
 
-// 导出适配器相关 API
+// ============================================================================
+// 适配器 API
+// ============================================================================
+
 export {
   getAdapter,
   getDefaultAdapter,
@@ -8,15 +11,27 @@ export {
   resetAdapters,
   setDefaultAdapter,
 } from './adapters';
-// 导出配置相关 API
+
+// ============================================================================
+// 配置 API
+// ============================================================================
+
 export { configure, getGlobalConfig, mergeConfig, resetConfig } from './config';
+
+// ============================================================================
+// 功能模块
+// ============================================================================
+
 export { withCache } from './features/cache';
 export { clearPendingRequests, withIdempotent } from './features/idempotent';
 export { parallelRequests } from './features/parallel';
-// 导出功能模块
 export { retryRequest } from './features/retry';
 export { serialRequests } from './features/serial';
-// 导出 Hook
+
+// ============================================================================
+// Hooks
+// ============================================================================
+
 export type {
   ParallelRequestsHookConfig,
   ParallelRequestsHookResult,
@@ -28,7 +43,17 @@ export type {
   SerialRequestsHookResult,
 } from './hooks/useSerialRequests';
 export { useSerialRequests } from './hooks/useSerialRequests';
-// 导出接口
+
+// ============================================================================
+// 请求实例
+// ============================================================================
+
+export { createRequest } from './request';
+
+// ============================================================================
+// 接口类型
+// ============================================================================
+
 export type {
   CacheAdapter,
   RequestAdapter,
@@ -36,9 +61,11 @@ export type {
   RequestInstance,
   Response,
 } from './interfaces';
-// 导出请求实例创建函数
-export { createRequest } from './request';
-// 导出类型
+
+// ============================================================================
+// 类型定义
+// ============================================================================
+
 export type {
   CacheConfig,
   GlobalConfig,

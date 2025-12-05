@@ -178,7 +178,7 @@ describe('useSerialRequests', () => {
       expect(onSuccess2).toHaveBeenCalledTimes(1);
     });
 
-    it('应该调用整体的 onSuccess 钩子，传递结果和索引', async () => {
+    it('应该调用整体的 onSuccess 钩子，传递所有结果的数组', async () => {
       const onSuccess = vi.fn();
       mockAdapter = {
         async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
@@ -197,17 +197,11 @@ describe('useSerialRequests', () => {
       const { send } = useSerialRequests(configs, { onSuccess });
       await send();
 
-      expect(onSuccess).toHaveBeenCalledTimes(2);
-      expect(onSuccess).toHaveBeenNthCalledWith(
-        1,
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(onSuccess).toHaveBeenCalledWith([
         expect.objectContaining({ data: { url: '/api/users' } }),
-        0
-      );
-      expect(onSuccess).toHaveBeenNthCalledWith(
-        2,
         expect.objectContaining({ data: { url: '/api/posts' } }),
-        1
-      );
+      ]);
     });
 
     it('应该调用整体的 onError 钩子，传递错误和索引', async () => {
@@ -371,7 +365,7 @@ describe('useSerialRequests', () => {
   });
 
   describe('钩子参数正确性', () => {
-    it('onSuccess 应该接收到正确的结果和索引', async () => {
+    it('onSuccess 应该接收到所有结果的数组', async () => {
       const onSuccess = vi.fn();
       mockAdapter = {
         async request<T>(config: RequestConfig<T>): Promise<Response<T>> {
@@ -390,17 +384,11 @@ describe('useSerialRequests', () => {
       const { send } = useSerialRequests(configs, { onSuccess });
       await send();
 
-      expect(onSuccess).toHaveBeenCalledTimes(2);
-      expect(onSuccess).toHaveBeenNthCalledWith(
-        1,
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(onSuccess).toHaveBeenCalledWith([
         expect.objectContaining({ data: { url: '/api/users', index: 0 } }),
-        0
-      );
-      expect(onSuccess).toHaveBeenNthCalledWith(
-        2,
         expect.objectContaining({ data: { url: '/api/posts', index: 1 } }),
-        1
-      );
+      ]);
     });
 
     it('onError 应该接收到正确的错误和索引', async () => {

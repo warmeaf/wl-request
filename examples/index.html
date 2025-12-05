@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wl-request 示例索引</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+          Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        line-height: 1.6;
+        background: #f5f5f5;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 40px;
+        font-size: 1.1em;
+      }
+
+      .examples-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .example-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+
+      .example-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .example-card h2 {
+        color: #007bff;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+      }
+
+      .example-card p {
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 15px;
+      }
+
+      .example-card .path {
+        color: #999;
+        font-size: 0.85em;
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 5px 8px;
+        border-radius: 4px;
+        display: inline-block;
+      }
+
+      .category {
+        margin-top: 40px;
+      }
+
+      .category h2 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #007bff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>wl-request 示例索引</h1>
+    <p class="subtitle">选择下面的示例来查看 wl-request 的各种功能演示</p>
+
+    <div class="category">
+      <h2>基础示例</h2>
+      <div class="examples-grid">
+        <a href="/basic/index.html" class="example-card">
+          <h2>基础示例</h2>
+          <p>演示 wl-request 的基本使用方法，包括 GET、POST 请求和生命周期钩子</p>
+          <span class="path">/basic/index.html</span>
+        </a>
+
+        <a href="/full/index.html" class="example-card">
+          <h2>完整示例</h2>
+          <p>综合演示 wl-request 的所有功能，包括重试、缓存、幂等等</p>
+          <span class="path">/full/index.html</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>功能示例</h2>
+      <div class="examples-grid">
+        <a href="/features/cache.html" class="example-card">
+          <h2>缓存功能</h2>
+          <p>演示如何使用缓存功能来减少重复请求</p>
+          <span class="path">/features/cache.html</span>
+        </a>
+
+        <a href="/features/retry.html" class="example-card">
+          <h2>重试功能</h2>
+          <p>演示如何使用重试功能来处理失败请求</p>
+          <span class="path">/features/retry.html</span>
+        </a>
+
+        <a href="/features/idempotent.html" class="example-card">
+          <h2>幂等功能</h2>
+          <p>演示如何使用幂等功能来防止重复提交</p>
+          <span class="path">/features/idempotent.html</span>
+        </a>
+
+        <a href="/features/parallel.html" class="example-card">
+          <h2>并行请求</h2>
+          <p>演示如何使用并行请求功能同时发送多个请求</p>
+          <span class="path">/features/parallel.html</span>
+        </a>
+
+        <a href="/features/serial.html" class="example-card">
+          <h2>串行请求</h2>
+          <p>演示如何使用串行请求功能按顺序发送多个请求</p>
+          <span class="path">/features/serial.html</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>适配器示例</h2>
+      <div class="examples-grid">
+        <a href="/adapters/fetch.html" class="example-card">
+          <h2>Fetch 适配器</h2>
+          <p>演示如何使用 Fetch 适配器</p>
+          <span class="path">/adapters/fetch.html</span>
+        </a>
+
+        <a href="/adapters/cache-memory.html" class="example-card">
+          <h2>内存缓存适配器</h2>
+          <p>演示如何使用内存缓存适配器</p>
+          <span class="path">/adapters/cache-memory.html</span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>
+
