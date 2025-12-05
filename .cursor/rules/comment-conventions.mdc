@@ -1,0 +1,418 @@
+---
+alwaysApply: true
+---
+
+# 注释规范 (Comment Conventions)
+
+本文档定义了 wl-request 项目的注释规范，所有代码都应遵循这些规范。
+
+## 注释语言
+
+- **中文注释**：项目支持中文注释，优先使用中文描述业务逻辑和功能说明
+- **英文注释**：API 文档、JSDoc 注释可以使用英文，但推荐使用中文以提高可读性
+
+## 文件头注释
+
+### 文件顶部注释
+
+每个源文件应在顶部添加简要说明：
+
+```typescript
+// 类型定义
+
+// 或
+
+// Fetch 适配器实现
+
+// 或
+
+// 功能模块（重试、缓存等）
+```
+
+## JSDoc 注释规范
+
+### 基本格式
+
+所有导出的类型、接口、函数、类都应该有 JSDoc 注释。
+
+```typescript
+/**
+ * 描述内容
+ */
+```
+
+### 类型和接口注释
+
+#### 简单类型
+
+```typescript
+/**
+ * HTTP 请求方法
+ */
+export type RequestMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS'
+```
+
+#### 泛型类型
+
+```typescript
+/**
+ * 响应数据类型（泛型）
+ */
+export type ResponseData<T = unknown> = T
+```
+
+#### 接口注释
+
+```typescript
+/**
+ * HTTP 响应
+ */
+export interface Response<T = unknown> {
+  /** HTTP 状态码 */
+  status: number
+  /** HTTP 状态文本 */
+  statusText: string
+  /** 响应头 */
+  headers: ResponseHeaders
+  /** 响应数据 */
+  data: ResponseData<T>
+  /** 原始响应对象（适配器特定） */
+  raw?: unknown
+}
+```
+
+#### 接口属性注释
+
+- 使用单行注释 `/** */` 描述每个属性
+- 注释应简洁明了，说明属性的用途和类型含义
+
+```typescript
+export interface RequestConfig<T = unknown> {
+  /** 请求 URL */
+  url: string
+  /** HTTP 方法 */
+  method?: RequestMethod
+  /** 基础 URL */
+  baseURL?: string
+  /** 请求头 */
+  headers?: Record<string, string>
+}
+```
+
+### 函数注释
+
+#### 基本函数注释
+
+```typescript
+/**
+ * 发送 HTTP 请求
+ * @param config 请求配置
+ * @returns Promise<Response<T>> 响应对象
+ */
+function sendRequest<T>(config: RequestConfig<T>): Promise<Response<T>> {
+  // ...
+}
+```
+
+#### 带参数的函数注释
+
+```typescript
+/**
+ * 重试条件函数
+ * @param error 请求错误
+ * @param retryCount 当前重试次数
+ * @returns 是否应该重试
+ */
+export type RetryCondition = (
+  error: RequestError,
+  retryCount: number
+) => boolean
+```
+
+#### 接口方法注释
+
+```typescript
+/**
+ * 请求适配器接口
+ * 适配器需要实现此接口以支持不同的请求库（fetch、axios 等）
+ */
+export interface RequestAdapter {
+  /**
+   * 执行请求
+   * @param config 请求配置
+   * @returns Promise<Response<T>>
+   */
+  request<T = unknown>(config: RequestConfig<T>): Promise<Response<T>>
+}
+```
+
+### JSDoc 标签使用
+
+#### @param
+
+描述函数参数：
+
+```typescript
+/**
+ * 设置缓存值
+ * @param key 缓存键
+ * @param value 缓存值
+ * @param ttl 过期时间（毫秒），可选
+ * @returns Promise<void>
+ */
+set<T = unknown>(key: string, value: T, ttl?: number): Promise<void>;
+```
+
+#### @returns / @return
+
+描述返回值：
+
+```typescript
+/**
+ * 获取缓存值
+ * @param key 缓存键
+ * @returns Promise<T | null> 缓存值，不存在时返回 null
+ */
+get<T = unknown>(key: string): Promise<T | null>;
+```
+
+#### @throws
+
+描述可能抛出的异常（如果需要）：
+
+```typescript
+/**
+ * 验证请求配置
+ * @param config 请求配置
+ * @throws {Error} 当配置无效时抛出错误
+ */
+function validateConfig(config: RequestConfig): void {
+  // ...
+}
+```
+
+#### @example
+
+提供使用示例：
+
+````typescript
+/**
+ * 创建请求实例
+ * @param config 请求配置
+ * @returns 请求实例
+ * @example
+ * ```typescript
+ * const instance = createRequest({
+ *   url: '/api/users',
+ *   method: 'GET'
+ * });
+ * ```
+ */
+````
+
+#### @deprecated
+
+标记已废弃的 API：
+
+```typescript
+/**
+ * 旧版请求方法（已废弃）
+ * @deprecated 请使用新的 request 方法
+ */
+function oldRequest(): void {
+  // ...
+}
+```
+
+## 行内注释规范
+
+### 代码解释注释
+
+禁止使用代码解释注释
+
+### TODO 注释
+
+使用 TODO 标记待完成的工作：
+
+```typescript
+// TODO: 实现请求取消功能
+// TODO: 添加请求拦截器支持
+// FIXME: 修复缓存键冲突问题
+// NOTE: 这里需要特殊处理，因为某些浏览器不支持
+```
+
+### 注释格式
+
+- 单行注释：`//` 后加一个空格
+- 多行注释：使用 `/* */` 格式
+- 注释应与代码对齐
+
+```typescript
+// ✅ 正确
+const url = '/api/users' // 用户 API 端点
+
+// ❌ 错误
+const url = '/api/users' //用户 API 端点
+const url = '/api/users' // 用户 API 端点（缺少空格）
+```
+
+## 复杂逻辑注释
+
+### 算法说明
+
+对于复杂的算法或业务逻辑，应添加详细注释：
+
+```typescript
+/**
+ * 实现指数退避重试策略
+ *
+ * 算法说明：
+ * 1. 第一次重试延迟：baseDelay
+ * 2. 第二次重试延迟：baseDelay * 2
+ * 3. 第三次重试延迟：baseDelay * 4
+ * 4. 以此类推，最大延迟不超过 maxDelay
+ *
+ * @param retryCount 当前重试次数（从 0 开始）
+ * @param baseDelay 基础延迟时间（毫秒）
+ * @param maxDelay 最大延迟时间（毫秒）
+ * @returns 计算后的延迟时间（毫秒）
+ */
+function calculateExponentialBackoff(
+  retryCount: number,
+  baseDelay: number,
+  maxDelay: number
+): number {
+  const delay = baseDelay * Math.pow(2, retryCount)
+  return Math.min(delay, maxDelay)
+}
+```
+
+## 注释检查清单
+
+在提交代码前，请检查：
+
+- [ ] 所有导出的类型、接口、函数都有 JSDoc 注释
+- [ ] 接口的所有属性都有注释
+- [ ] 函数参数和返回值都有说明
+- [ ] 复杂逻辑有详细注释说明
+- [ ] 注释使用中文（除非是 API 文档）
+- [ ] 注释准确描述了代码的功能
+- [ ] 没有过时的注释
+- [ ] TODO 注释已记录在 issue 中（如适用）
+
+## 注释示例
+
+### 完整的类型定义示例
+
+```typescript
+/**
+ * 请求配置
+ */
+export interface RequestConfig<T = unknown> extends RequestHooks<T> {
+  /** 请求 URL */
+  url: string
+  /** HTTP 方法 */
+  method?: RequestMethod
+  /** 基础 URL */
+  baseURL?: string
+  /** 请求头 */
+  headers?: Record<string, string>
+  /** URL 参数 */
+  params?: Record<string, string | number | boolean | null | undefined>
+  /** 请求体数据 */
+  data?: unknown
+  /** 超时时间（毫秒） */
+  timeout?: number
+  /** 请求适配器实例 */
+  adapter?: RequestAdapter
+  /** 重试配置 */
+  retry?: RetryConfig
+  /** 缓存配置 */
+  cache?: CacheConfig
+  /** 幂等配置 */
+  idempotent?: IdempotentConfig
+  /** 缓存适配器实例（用于缓存和幂等功能） */
+  cacheAdapter?: CacheAdapter
+}
+```
+
+### 完整的函数注释示例
+
+```typescript
+/**
+ * 请求前钩子函数
+ * @param config 请求配置
+ * @returns 可能修改后的配置或 undefined
+ */
+export type OnBeforeHook<T = unknown> = (
+  config: RequestConfig<T>
+) => RequestConfig<T> | undefined | Promise<RequestConfig<T> | undefined>
+```
+
+### 完整的接口注释示例
+
+```typescript
+/**
+ * 缓存适配器接口
+ * 缓存适配器需要实现此接口以支持不同的存储方式（内存、localStorage、IndexedDB 等）
+ */
+export interface CacheAdapter {
+  /**
+   * 获取缓存值
+   * @param key 缓存键
+   * @returns Promise<T | null> 缓存值，不存在时返回 null
+   */
+  get<T = unknown>(key: string): Promise<T | null>
+
+  /**
+   * 设置缓存值
+   * @param key 缓存键
+   * @param value 缓存值
+   * @param ttl 过期时间（毫秒），可选
+   * @returns Promise<void>
+   */
+  set<T = unknown>(key: string, value: T, ttl?: number): Promise<void>
+
+  /**
+   * 删除缓存值
+   * @param key 缓存键
+   * @returns Promise<void>
+   */
+  delete(key: string): Promise<void>
+
+  /**
+   * 清空所有缓存
+   * @returns Promise<void>
+   */
+  clear(): Promise<void>
+}
+```
+
+## 注释风格指南
+
+### 1. 简洁明了
+
+- ✅ "HTTP 请求方法"
+- ❌ "这是一个用于表示 HTTP 请求方法的类型定义"
+
+### 2. 描述用途而非实现
+
+- ✅ "获取缓存值"
+- ❌ "从 Map 中获取值"
+
+### 3. 使用专业术语
+
+- ✅ "实现指数退避策略"
+- ❌ "延迟时间会越来越大"
+
+### 4. 保持一致性
+
+- 相同类型的注释应保持格式一致
+- 使用统一的术语（如"请求配置"而不是"请求参数"）
