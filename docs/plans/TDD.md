@@ -225,49 +225,57 @@
 
 ### 第六阶段：Hook 层实现（TDD）
 
+**设计原则**：Hook 层不维护内部状态，只提供请求执行能力和钩子支持。使用者通过生命周期钩子（onBefore、onSuccess、onError、onFinally）自行维护状态，这样可以灵活适配不同的响应式框架（React、Vue 等）或非响应式场景。
+
 #### 6.1 useRequest Hook
 
 **测试先行** (`packages/core/tests/hooks/useRequest.test.ts`)
 
-- 测试：基础请求功能
-- 测试：响应式状态（loading、error、data）
-- 测试：生命周期钩子调用
+- 测试：基础请求功能（send、cancel 方法）
+- 测试：生命周期钩子调用（onBefore、onSuccess、onError、onFinally）
 - 测试：重试功能集成
 - 测试：缓存功能集成
 - 测试：幂等功能集成
+- 测试：钩子执行顺序和参数传递
 
 **实现** (`packages/core/src/hooks/useRequest.ts`)
 
-- 实现基础请求 Hook
-- 支持响应式状态（loading、error、data）
+- 实现基础请求 Hook，返回 `{ send, cancel }` 方法
 - 集成所有功能模块（重试、缓存、幂等）
-- 支持生命周期钩子
+- 支持生命周期钩子，让使用者通过钩子自行维护状态
+- 不维护内部状态（loading、error、data），状态由使用者管理
 
 #### 6.2 useParallelRequests Hook
 
 **测试先行** (`packages/core/tests/hooks/useParallelRequests.test.ts`)
 
 - 测试：并行请求执行
-- 测试：状态管理
-- 测试：错误处理
+- 测试：生命周期钩子调用（onBefore、onSuccess、onError、onFinally）
+- 测试：错误处理（部分失败场景）
+- 测试：钩子参数正确性（results、errors）
 
 **实现** (`packages/core/src/hooks/useParallelRequests.ts`)
 
-- 实现并行请求 Hook
+- 实现并行请求 Hook，返回 `{ send, cancel }` 方法
 - 基于并行请求功能模块
+- 支持生命周期钩子，让使用者通过钩子自行维护状态
+- 不维护内部状态，状态由使用者管理
 
 #### 6.3 useSerialRequests Hook
 
 **测试先行** (`packages/core/tests/hooks/useSerialRequests.test.ts`)
 
 - 测试：串行请求执行
-- 测试：状态管理
-- 测试：错误处理
+- 测试：生命周期钩子调用（onBefore、onSuccess、onError、onFinally）
+- 测试：错误处理（中断场景）
+- 测试：钩子参数正确性（results、error、index）
 
 **实现** (`packages/core/src/hooks/useSerialRequests.ts`)
 
-- 实现串行请求 Hook
+- 实现串行请求 Hook，返回 `{ send, cancel }` 方法
 - 基于串行请求功能模块
+- 支持生命周期钩子，让使用者通过钩子自行维护状态
+- 不维护内部状态，状态由使用者管理
 
 #### 6.4 Hook 导出 (`packages/core/src/hooks/index.ts`)
 
