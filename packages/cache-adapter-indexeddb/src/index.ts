@@ -43,22 +43,18 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
    * @returns Promise<IDBDatabase>
    */
   private async initDB(): Promise<IDBDatabase> {
-    // 如果数据库已初始化，直接返回
     if (this.db) {
       return this.db;
     }
 
-    // 如果正在初始化，等待初始化完成
     if (this.initPromise) {
       return await this.initPromise;
     }
 
-    // 检查 IndexedDB 是否可用
     if (typeof indexedDB === 'undefined') {
       throw new Error('IndexedDB is not supported in this environment');
     }
 
-    // 开始初始化
     this.initPromise = new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(this.dbName, 1);
 
@@ -76,10 +72,8 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // 如果对象存储不存在，创建它
         if (!db.objectStoreNames.contains(this.storeName)) {
           const objectStore = db.createObjectStore(this.storeName, { keyPath: 'key' });
-          // 创建过期时间索引，用于清理过期数据
           objectStore.createIndex('expiresAt', 'expiresAt', { unique: false });
         }
       };
@@ -123,15 +117,12 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         request.onsuccess = () => {
           const item = request.result as CacheItem | undefined;
 
-          // 缓存不存在
           if (!item) {
             resolve(null);
             return;
           }
 
-          // 检查是否过期
           if (Date.now() > item.expiresAt) {
-            // 已过期，删除缓存项
             this.delete(key).catch(() => {
               // 忽略删除错误
             });
@@ -139,12 +130,10 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
             return;
           }
 
-          // 返回缓存值
           resolve(item.value as T);
         };
       });
     } catch (_error) {
-      // 如果数据库初始化失败，返回 null
       return null;
     }
   }
@@ -161,7 +150,6 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
     const transaction = db.transaction([this.storeName], 'readwrite');
     const store = transaction.objectStore(this.storeName);
 
-    // 如果 TTL 为 0 或负数，立即过期（设置为当前时间之前）
     const expiresAt =
       ttl !== undefined ? (ttl <= 0 ? Date.now() - 1 : Date.now() + ttl) : Number.MAX_SAFE_INTEGER;
 
@@ -207,8 +195,6 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         };
       });
     } catch (error) {
-      // 如果数据库初始化失败，忽略错误（幂等操作）
-      // 但如果是其他错误，应该抛出
       if (error instanceof Error && error.message.includes('IndexedDB')) {
         return;
       }
@@ -238,7 +224,6 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         };
       });
     } catch (error) {
-      // 如果数据库初始化失败，忽略错误（幂等操作）
       if (error instanceof Error && error.message.includes('IndexedDB')) {
         return;
       }

@@ -4,19 +4,16 @@ import { FetchAdapter } from '@wl-request/adapter-fetch';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useParallelRequests } from '@wl-request/core';
 
-// 设置默认适配器
 configure({
   adapter: new FetchAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
-// 获取 DOM 元素
 const output = document.getElementById('output') as HTMLDivElement;
 const btnParallel = document.getElementById('btn-parallel') as HTMLButtonElement;
 const btnPartialFailure = document.getElementById('btn-partial-failure') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 
-// 输出函数
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
   const timestamp = new Date().toLocaleTimeString();
@@ -24,7 +21,6 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   output.scrollTop = output.scrollHeight;
 }
 
-// 并行请求示例
 btnParallel.addEventListener('click', async () => {
   log('开始并行请求示例...');
   btnParallel.disabled = true;
@@ -67,12 +63,10 @@ btnParallel.addEventListener('click', async () => {
   }
 });
 
-// 部分失败处理示例
 btnPartialFailure.addEventListener('click', async () => {
   log('开始部分失败处理示例...');
   btnPartialFailure.disabled = true;
 
-  // 创建一个会失败的适配器
   const errorAdapter = {
     async request<T>(config: RequestConfig<T>) {
       if (config.url === '/posts/999') {
@@ -87,7 +81,7 @@ btnPartialFailure.addEventListener('click', async () => {
     const { send } = useParallelRequests(
       [
         { url: '/posts/1', adapter: errorAdapter },
-        { url: '/posts/999', adapter: errorAdapter }, // 这个会失败
+        { url: '/posts/999', adapter: errorAdapter },
         { url: '/posts/3', adapter: errorAdapter },
       ],
       {
@@ -111,10 +105,8 @@ btnPartialFailure.addEventListener('click', async () => {
   }
 });
 
-// 清空输出
 btnClear.addEventListener('click', () => {
   output.innerHTML = '';
 });
 
-// 初始化提示
 log('wl-request 并行请求示例已加载，点击按钮开始测试。');

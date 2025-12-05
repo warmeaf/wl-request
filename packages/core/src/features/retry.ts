@@ -28,7 +28,6 @@ function calculateDelay(
       delay = baseDelay;
       break;
   }
-  // 如果设置了最大延迟，限制延迟时间
   if (maxDelay !== undefined) {
     return Math.min(delay, maxDelay);
   }
@@ -61,16 +60,13 @@ export async function retryRequest<T>(
   let lastError: RequestError | Error;
   let retryCount = 0;
 
-  // 执行初始请求
   try {
     return await requestFn();
   } catch (error) {
     lastError = error as RequestError | Error;
   }
 
-  // 重试逻辑
   while (retryCount < count) {
-    // 检查自定义重试条件
     if (condition) {
       const shouldRetry = condition(lastError as RequestError, retryCount);
       if (!shouldRetry) {
@@ -78,13 +74,10 @@ export async function retryRequest<T>(
       }
     }
 
-    // 计算延迟时间
     const delayTime = calculateDelay(retryCount, baseDelay, strategy, maxDelay);
 
-    // 等待延迟时间
     await delay(delayTime);
 
-    // 执行重试
     try {
       return await requestFn();
     } catch (error) {
@@ -93,6 +86,5 @@ export async function retryRequest<T>(
     }
   }
 
-  // 所有重试都失败，抛出最后一次错误
   throw lastError;
 }

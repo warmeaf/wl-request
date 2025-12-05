@@ -41,24 +41,18 @@ export function useParallelRequests<T = unknown>(
   configs: RequestConfig<T>[],
   hookConfig?: ParallelRequestsHookConfig<T>
 ): ParallelRequestsHookResult<T> {
-  // 为每个配置创建请求实例
   const requestInstances = configs.map((config) => createRequest(config));
 
-  // send 方法
   const send = async (): Promise<Response<T>[]> => {
     try {
-      // 调用 onBefore 钩子
       if (hookConfig?.onBefore) {
         await hookConfig.onBefore();
       }
 
-      // 收集所有请求的 send 方法
       const requestFns = requestInstances.map((instance) => () => instance.send());
 
-      // 并行执行所有请求
       const results = await parallelRequests(requestFns);
 
-      // 分离成功和失败的结果
       const successResults: Response<T>[] = [];
       const errors: RequestError[] = [];
 
@@ -70,7 +64,6 @@ export function useParallelRequests<T = unknown>(
         }
       }
 
-      // 如果有错误，调用 onError 钩子并抛出第一个错误
       if (errors.length > 0) {
         if (hookConfig?.onError) {
           await hookConfig.onError(errors);
@@ -78,23 +71,19 @@ export function useParallelRequests<T = unknown>(
         throw errors[0];
       }
 
-      // 所有请求都成功，调用 onSuccess 钩子
       if (hookConfig?.onSuccess) {
         await hookConfig.onSuccess(successResults);
       }
 
       return successResults;
     } finally {
-      // 调用 onFinally 钩子
       if (hookConfig?.onFinally) {
         await hookConfig.onFinally();
       }
     }
   };
 
-  // cancel 方法
   const cancel = (): void => {
-    // 取消所有请求实例
     requestInstances.forEach((instance) => {
       instance.cancel();
     });

@@ -28,19 +28,15 @@ export class MemoryCacheAdapter implements CacheAdapter {
   async get<T = unknown>(key: string): Promise<T | null> {
     const item = this.cache.get(key);
 
-    // 缓存不存在
     if (!item) {
       return null;
     }
 
-    // 检查是否过期
     if (Date.now() > item.expiresAt) {
-      // 已过期，删除缓存项
       this.cache.delete(key);
       return null;
     }
 
-    // 返回缓存值
     return item.value as T;
   }
 
@@ -52,7 +48,6 @@ export class MemoryCacheAdapter implements CacheAdapter {
    * @returns Promise<void>
    */
   async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
-    // 如果 TTL 为 0 或负数，立即过期（设置为当前时间之前）
     const expiresAt =
       ttl !== undefined ? (ttl <= 0 ? Date.now() - 1 : Date.now() + ttl) : Number.MAX_SAFE_INTEGER;
 

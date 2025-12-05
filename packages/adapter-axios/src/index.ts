@@ -28,13 +28,11 @@ function toAxiosConfig<T>(config: RequestConfig<T>): AxiosRequestConfig {
  * @returns Response<T>
  */
 function toResponse<T>(axiosResponse: AxiosResponse<T>): Response<T> {
-  // 将 axios headers 对象转换为普通对象
   const headers: Record<string, string> = {};
   if (axiosResponse.headers) {
     Object.keys(axiosResponse.headers).forEach((key) => {
       const value = axiosResponse.headers[key];
       if (value !== undefined) {
-        // axios headers 可能是字符串或字符串数组
         headers[key] = Array.isArray(value) ? value.join(', ') : String(value);
       }
     });
@@ -58,7 +56,6 @@ function toResponse<T>(axiosResponse: AxiosResponse<T>): Response<T> {
 function toRequestError<T = unknown>(error: unknown, config?: RequestConfig<T>): RequestError {
   const axiosError = error as AxiosError;
 
-  // 如果有响应，说明是 HTTP 错误
   if (axiosError.response) {
     const response = axiosError.response;
     const errorMessage = axiosError.message || `Request failed with status ${response.status}`;
@@ -66,7 +63,6 @@ function toRequestError<T = unknown>(error: unknown, config?: RequestConfig<T>):
     const requestError = new Error(errorMessage) as RequestError;
     requestError.status = response.status;
     requestError.statusText = response.statusText;
-    // 将 RequestConfig<T> 转换为 RequestConfig<unknown> 以匹配 RequestError 接口
     requestError.config = config as RequestConfig<unknown> | undefined;
     requestError.originalError = error;
     requestError.code = `HTTP_${response.status}`;
@@ -74,14 +70,11 @@ function toRequestError<T = unknown>(error: unknown, config?: RequestConfig<T>):
     return requestError;
   }
 
-  // 网络错误或其他错误
   const errorMessage = axiosError.message || 'Request failed';
   const requestError = new Error(errorMessage) as RequestError;
-  // 将 RequestConfig<T> 转换为 RequestConfig<unknown> 以匹配 RequestError 接口
   requestError.config = config as RequestConfig<unknown> | undefined;
   requestError.originalError = error;
 
-  // 根据错误代码设置 code
   if (axiosError.code) {
     requestError.code = axiosError.code;
   } else if (axiosError.message?.includes('timeout')) {
@@ -109,16 +102,13 @@ export class AxiosAdapter implements RequestAdapter {
       const axiosResponse = await axios.request<T>(axiosConfig);
       return toResponse(axiosResponse);
     } catch (error) {
-      // 如果是 axios 错误，转换为 RequestError
       if (axios.isAxiosError(error)) {
         throw toRequestError(error, config);
       }
 
-      // 其他错误，包装为 RequestError
       const requestError = new Error(
         error instanceof Error ? error.message : 'Request failed'
       ) as RequestError;
-      // 将 RequestConfig<T> 转换为 RequestConfig<unknown> 以匹配 RequestError 接口
       requestError.config = config as RequestConfig<unknown>;
       requestError.originalError = error;
       requestError.code = 'UNKNOWN_ERROR';

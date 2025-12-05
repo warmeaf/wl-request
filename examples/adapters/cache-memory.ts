@@ -5,7 +5,6 @@ import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useRequest } from '@wl-request/core';
 
-// 配置使用 Fetch 适配器和内存缓存适配器
 const memoryCacheAdapter = new MemoryCacheAdapter();
 
 configure({
@@ -14,12 +13,10 @@ configure({
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
-// 获取 DOM 元素
 const output = document.getElementById('output') as HTMLDivElement;
 const btnMemoryCache = document.getElementById('btn-memory-cache') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 
-// 输出函数
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
   const timestamp = new Date().toLocaleTimeString();
@@ -29,13 +26,11 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
 
 let requestCount = 0;
 
-// 内存缓存适配器示例
 btnMemoryCache.addEventListener('click', async () => {
   log('开始内存缓存适配器示例...');
   btnMemoryCache.disabled = true;
   requestCount = 0;
 
-  // 创建一个会记录请求次数的适配器
   const countingAdapter = {
     async request<T>(config: RequestConfig<T>) {
       requestCount++;
@@ -59,12 +54,10 @@ btnMemoryCache.addEventListener('click', async () => {
       },
     });
 
-    // 第一次请求
     log('第一次请求（会实际发送请求）...');
     await send();
     log(`第一次请求完成，实际请求次数: ${requestCount}`);
 
-    // 第二次请求（应该使用缓存）
     log('第二次请求（应该使用缓存，不会实际发送请求）...');
     await send();
     log(`第二次请求完成，实际请求次数: ${requestCount}（应该还是1）`, 'success');
@@ -75,10 +68,8 @@ btnMemoryCache.addEventListener('click', async () => {
   }
 });
 
-// 清空输出
 btnClear.addEventListener('click', () => {
   output.innerHTML = '';
 });
 
-// 初始化提示
 log('wl-request 内存缓存适配器示例已加载，点击按钮开始测试。');

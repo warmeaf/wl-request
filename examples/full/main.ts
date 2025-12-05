@@ -5,7 +5,6 @@ import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useParallelRequests, useRequest, useSerialRequests } from '@wl-request/core';
 
-// 全局配置
 const cacheAdapter = new MemoryCacheAdapter();
 
 configure({
@@ -30,7 +29,6 @@ configure({
   },
 });
 
-// 获取 DOM 元素
 const output = document.getElementById('output') as HTMLDivElement;
 const btnBasic = document.getElementById('btn-basic') as HTMLButtonElement;
 const btnRetry = document.getElementById('btn-retry') as HTMLButtonElement;
@@ -40,7 +38,6 @@ const btnParallel = document.getElementById('btn-parallel') as HTMLButtonElement
 const btnSerial = document.getElementById('btn-serial') as HTMLButtonElement;
 const btnCombined = document.getElementById('btn-combined') as HTMLButtonElement;
 
-// 输出函数
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
   const timestamp = new Date().toLocaleTimeString();
@@ -48,7 +45,6 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   output.scrollTop = output.scrollHeight;
 }
 
-// 基本请求
 btnBasic.addEventListener('click', async () => {
   log('=== 基本请求示例 ===');
   btnBasic.disabled = true;
@@ -67,7 +63,6 @@ btnBasic.addEventListener('click', async () => {
   }
 });
 
-// 重试请求
 btnRetry.addEventListener('click', async () => {
   log('=== 重试请求示例 ===');
   btnRetry.disabled = true;
@@ -104,7 +99,6 @@ btnRetry.addEventListener('click', async () => {
   }
 });
 
-// 缓存请求
 btnCache.addEventListener('click', async () => {
   log('=== 缓存请求示例 ===');
   btnCache.disabled = true;
@@ -139,7 +133,6 @@ btnCache.addEventListener('click', async () => {
   }
 });
 
-// 幂等请求
 btnIdempotent.addEventListener('click', async () => {
   log('=== 幂等请求示例 ===');
   btnIdempotent.disabled = true;
@@ -180,7 +173,6 @@ btnIdempotent.addEventListener('click', async () => {
   }
 });
 
-// 并行请求
 btnParallel.addEventListener('click', async () => {
   log('=== 并行请求示例 ===');
   btnParallel.disabled = true;
@@ -206,7 +198,6 @@ btnParallel.addEventListener('click', async () => {
   }
 });
 
-// 串行请求
 btnSerial.addEventListener('click', async () => {
   log('=== 串行请求示例 ===');
   btnSerial.disabled = true;
@@ -232,7 +223,6 @@ btnSerial.addEventListener('click', async () => {
   }
 });
 
-// 组合功能
 btnCombined.addEventListener('click', async () => {
   log('=== 组合功能示例（重试 + 缓存 + 幂等） ===');
   btnCombined.disabled = true;
@@ -277,12 +267,10 @@ btnCombined.addEventListener('click', async () => {
       },
     });
 
-    // 第一次请求（会重试）
     log('第一次请求（会重试）...');
     attemptCount = 0;
     await send();
 
-    // 第二次请求（使用缓存和幂等）
     log('第二次请求（使用缓存和幂等）...');
     attemptCount = 0;
     await send();
@@ -295,5 +283,4 @@ btnCombined.addEventListener('click', async () => {
   }
 });
 
-// 初始化提示
 log('wl-request 完整示例已加载，点击按钮开始测试。');

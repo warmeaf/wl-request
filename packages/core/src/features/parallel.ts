@@ -9,14 +9,11 @@
 export async function parallelRequests<T>(
   requestFns: Array<() => Promise<T>>
 ): Promise<Array<PromiseSettledResult<T>>> {
-  // 空数组直接返回
   if (requestFns.length === 0) {
     return [];
   }
 
-  // 并行执行所有请求
   const promises = requestFns.map((fn) => fn());
 
-  // 使用 Promise.allSettled 等待所有请求完成
   return await Promise.allSettled(promises);
 }

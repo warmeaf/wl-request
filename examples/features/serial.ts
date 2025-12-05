@@ -4,19 +4,16 @@ import { FetchAdapter } from '@wl-request/adapter-fetch';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useSerialRequests } from '@wl-request/core';
 
-// 设置默认适配器
 configure({
   adapter: new FetchAdapter(),
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
-// 获取 DOM 元素
 const output = document.getElementById('output') as HTMLDivElement;
 const btnSerial = document.getElementById('btn-serial') as HTMLButtonElement;
 const btnInterrupt = document.getElementById('btn-interrupt') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 
-// 输出函数
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
   const timestamp = new Date().toLocaleTimeString();
@@ -24,7 +21,6 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   output.scrollTop = output.scrollHeight;
 }
 
-// 串行请求示例
 btnSerial.addEventListener('click', async () => {
   log('开始串行请求示例...');
   btnSerial.disabled = true;
@@ -33,7 +29,6 @@ btnSerial.addEventListener('click', async () => {
   const startTime = Date.now();
 
   try {
-    // 记录请求顺序
     const originalAdapter = new FetchAdapter();
     const trackingAdapter = {
       async request<T>(config: RequestConfig<T>) {
@@ -42,7 +37,6 @@ btnSerial.addEventListener('click', async () => {
       },
     };
 
-    // 使用跟踪适配器
     const { send: sendWithTracking } = useSerialRequests(
       [
         { url: '/posts/1', adapter: trackingAdapter },
@@ -68,12 +62,10 @@ btnSerial.addEventListener('click', async () => {
   }
 });
 
-// 中断处理示例
 btnInterrupt.addEventListener('click', async () => {
   log('开始中断处理示例...');
   btnInterrupt.disabled = true;
 
-  // 创建一个会失败的适配器
   const errorAdapter = {
     async request<T>(config: RequestConfig<T>) {
       if (config.url === '/posts/999') {
@@ -88,8 +80,8 @@ btnInterrupt.addEventListener('click', async () => {
     const { send } = useSerialRequests(
       [
         { url: '/posts/1', adapter: errorAdapter },
-        { url: '/posts/999', adapter: errorAdapter }, // 这个会失败，中断后续请求
-        { url: '/posts/3', adapter: errorAdapter }, // 这个不会执行
+        { url: '/posts/999', adapter: errorAdapter },
+        { url: '/posts/3', adapter: errorAdapter },
       ],
       {
         onSuccess: (results) => {
@@ -109,10 +101,8 @@ btnInterrupt.addEventListener('click', async () => {
   }
 });
 
-// 清空输出
 btnClear.addEventListener('click', () => {
   output.innerHTML = '';
 });
 
-// 初始化提示
 log('wl-request 串行请求示例已加载，点击按钮开始测试。');

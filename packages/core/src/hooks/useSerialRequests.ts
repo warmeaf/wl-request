@@ -41,55 +41,44 @@ export function useSerialRequests<T = unknown>(
   configs: RequestConfig<T>[],
   hookConfig?: SerialRequestsHookConfig<T>
 ): SerialRequestsHookResult<T> {
-  // 为每个配置创建请求实例
   const requestInstances = configs.map((config) => createRequest(config));
 
-  // send 方法
   const send = async (): Promise<Response<T>[]> => {
     try {
-      // 调用 onBefore 钩子
       if (hookConfig?.onBefore) {
         await hookConfig.onBefore();
       }
 
-      // 收集所有请求的 send 方法，并包装以支持错误钩子
       const requestFns = requestInstances.map(
         (instance, index) => async (): Promise<Response<T>> => {
           try {
             const result = await instance.send();
             return result;
           } catch (error) {
-            // 调用 onError 钩子
             if (hookConfig?.onError) {
               await hookConfig.onError(error as RequestError, index);
             }
 
-            // 重新抛出错误，让 serialRequests 处理中断逻辑
             throw error;
           }
         }
       );
 
-      // 串行执行所有请求
       const results = await serialRequests(requestFns);
 
-      // 所有请求都成功，调用 onSuccess 钩子
       if (hookConfig?.onSuccess) {
         await hookConfig.onSuccess(results);
       }
 
       return results;
     } finally {
-      // 调用 onFinally 钩子
       if (hookConfig?.onFinally) {
         await hookConfig.onFinally();
       }
     }
   };
 
-  // cancel 方法
   const cancel = (): void => {
-    // 取消所有请求实例（包括当前和后续的）
     requestInstances.forEach((instance) => {
       instance.cancel();
     });

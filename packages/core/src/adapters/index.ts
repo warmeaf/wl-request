@@ -36,7 +36,6 @@ async function createFetchAdapter(): Promise<RequestAdapter> {
     return fetchAdapterInstance;
   }
 
-  // 动态导入 FetchAdapter
   // @ts-expect-error - 动态导入，TypeScript 可能无法解析类型
   const { FetchAdapter } = await import('@wl-request/adapter-fetch');
   const adapter = new FetchAdapter() as RequestAdapter;
@@ -72,13 +71,10 @@ export function getDefaultAdapter(): RequestAdapter {
     return defaultAdapter;
   }
 
-  // 如果已经缓存了 FetchAdapter 实例，直接返回
   if (fetchAdapterInstance) {
     return fetchAdapterInstance;
   }
 
-  // 创建代理适配器，在首次使用时异步加载 FetchAdapter
-  // 这是浏览器兼容的方案，避免使用 require()
   const proxyAdapter: RequestAdapter = {
     async request<T>(
       config: import('../interfaces').RequestConfig<T>
@@ -96,11 +92,9 @@ export function getDefaultAdapter(): RequestAdapter {
  * @returns 适配器实例，如果未找到则返回 null
  */
 export function getAdapter(name?: string): RequestAdapter | null {
-  // 如果未指定名称或名称为 'default'，返回默认适配器
   if (!name || name === 'default') {
     return getDefaultAdapter();
   }
 
-  // 从注册表中查找
   return adapterRegistry.get(name) || null;
 }

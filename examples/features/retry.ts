@@ -1,7 +1,6 @@
 // 重试功能示例
 
 import { FetchAdapter } from '@wl-request/adapter-fetch';
-// 设置默认适配器
 import { configure, useRequest } from '@wl-request/core';
 
 configure({
@@ -9,7 +8,6 @@ configure({
   baseURL: 'https://jsonplaceholder.typicode.com',
 });
 
-// 获取 DOM 元素
 const output = document.getElementById('output') as HTMLDivElement;
 const btnRetry = document.getElementById('btn-retry') as HTMLButtonElement;
 const btnExponentialBackoff = document.getElementById(
@@ -17,7 +15,6 @@ const btnExponentialBackoff = document.getElementById(
 ) as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 
-// 输出函数
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
   const timestamp = new Date().toLocaleTimeString();
@@ -25,16 +22,13 @@ function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   output.scrollTop = output.scrollHeight;
 }
 
-// 模拟会失败的请求（前两次失败，第三次成功）
 let attemptCount = 0;
 
-// 重试请求示例
 btnRetry.addEventListener('click', async () => {
   log('开始重试请求示例...');
   btnRetry.disabled = true;
   attemptCount = 0;
 
-  // 模拟一个会失败的适配器
   const mockAdapter = {
     async request() {
       attemptCount++;
@@ -76,7 +70,6 @@ btnRetry.addEventListener('click', async () => {
   }
 });
 
-// 指数退避策略示例
 btnExponentialBackoff.addEventListener('click', async () => {
   log('开始指数退避策略示例...');
   btnExponentialBackoff.disabled = true;
@@ -131,10 +124,8 @@ btnExponentialBackoff.addEventListener('click', async () => {
   }
 });
 
-// 清空输出
 btnClear.addEventListener('click', () => {
   output.innerHTML = '';
 });
 
-// 初始化提示
 log('wl-request 重试功能示例已加载，点击按钮开始测试。');
