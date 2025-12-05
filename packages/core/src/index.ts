@@ -24,6 +24,8 @@ export type {
   RequestInstance,
   Response,
 } from './interfaces';
+// 导出请求实例创建函数
+export { createRequest } from './request';
 // 导出类型
 export type {
   CacheConfig,

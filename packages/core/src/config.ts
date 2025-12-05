@@ -87,18 +87,18 @@ export function getGlobalConfig(): Partial<GlobalConfig> {
  * @param local 请求配置
  * @returns 合并后的配置
  */
-export function mergeConfig<T extends Partial<RequestConfig>>(
+export function mergeConfig<T = unknown>(
   global: Partial<GlobalConfig>,
-  local: T
-): T {
+  local: Partial<RequestConfig<T>>
+): RequestConfig<T> {
   // 创建本地配置的副本
-  const result = { ...local };
+  const result = { ...local } as Partial<RequestConfig<T>>;
 
   // 遍历全局配置的所有属性
   for (const key in global) {
     if (Object.hasOwn(global, key)) {
       const globalValue = global[key as keyof GlobalConfig];
-      const localValue = result[key as keyof T];
+      const localValue = result[key as keyof RequestConfig<T>];
 
       // 如果本地配置中不存在该属性，使用全局配置的值
       if (localValue === undefined) {
@@ -108,9 +108,9 @@ export function mergeConfig<T extends Partial<RequestConfig>>(
           globalValue !== null &&
           !Array.isArray(globalValue)
         ) {
-          result[key as keyof T] = { ...globalValue } as T[keyof T];
+          (result as Record<string, unknown>)[key] = { ...globalValue };
         } else {
-          result[key as keyof T] = globalValue as T[keyof T];
+          (result as Record<string, unknown>)[key] = globalValue;
         }
         continue;
       }
@@ -137,18 +137,18 @@ export function mergeConfig<T extends Partial<RequestConfig>>(
         const localKeys = Object.keys(localValue as Record<string, unknown>);
         if (localKeys.length === 0) {
           // 空对象直接覆盖
-          result[key as keyof T] = localValue;
+          (result as Record<string, unknown>)[key] = localValue;
         } else {
           // 非空对象深度合并
-          result[key as keyof T] = deepMerge(
+          (result as Record<string, unknown>)[key] = deepMerge(
             globalValue as Record<string, unknown>,
             localValue as Record<string, unknown>
-          ) as T[keyof T];
+          );
         }
       }
       // 其他情况：本地配置优先级更高，已经使用本地配置的值
     }
   }
 
-  return result;
+  return result as RequestConfig<T>;
 }
