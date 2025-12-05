@@ -1,8 +1,8 @@
-import { defineConfig } from 'vitest/config'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
   test: {
@@ -13,28 +13,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.config.*',
-        '**/dist/**',
-        '**/*.d.ts',
-      ],
+      exclude: ['node_modules/', 'tests/', '**/*.config.*', '**/dist/**', '**/*.d.ts'],
     },
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './packages/core/src'),
       '@wl-request/core': resolve(__dirname, './packages/core/src'),
-      '@wl-request/adapter-fetch': resolve(
-        __dirname,
-        './packages/adapter-fetch/src'
-      ),
-      '@wl-request/adapter-axios': resolve(
-        __dirname,
-        './packages/adapter-axios/src'
-      ),
+      '@wl-request/adapter-fetch': resolve(__dirname, './packages/adapter-fetch/src'),
+      '@wl-request/adapter-axios': resolve(__dirname, './packages/adapter-axios/src'),
     },
   },
-})
-
+});

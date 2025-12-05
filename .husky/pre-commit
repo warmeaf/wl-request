@@ -1,5 +1,11 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
-pnpm lint-staged
+# Run lint-staged using pnpm
+# If pnpm is not in PATH, try using npm exec (works if pnpm is installed via npm)
+if command -v pnpm >/dev/null 2>&1; then
+  exec pnpm lint-staged
+else
+  # Fallback: use npm exec to run pnpm (works if pnpm is installed)
+  exec npm exec -- pnpm lint-staged
+fi
 

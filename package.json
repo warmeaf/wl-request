@@ -8,8 +8,7 @@
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky",
     "format": "biome format --write .",
-    "check": "biome check .",
-    "lint": "biome check --write .",
+    "check": "biome check --write .",
     "commitlint": "commitlint --edit",
     "dev": "vite",
     "build": "pnpm -r build",
@@ -50,4 +49,3 @@
     "pnpm": ">=8.0.0"
   }
 }
-

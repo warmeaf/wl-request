@@ -19,6 +19,6 @@ export default {
       ],
     ],
     'subject-case': [0],
+    'body-max-line-length': [2, 'always', 120], // 允许 body 每行最多 120 个字符
   },
-}
-
+};
