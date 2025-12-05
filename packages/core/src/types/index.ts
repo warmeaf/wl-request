@@ -56,6 +56,8 @@ export interface RetryConfig {
   strategy?: RetryStrategy;
   /** 自定义重试条件函数 */
   condition?: RetryCondition;
+  /** 最大延迟时间（毫秒），用于限制指数退避和线性退避的最大延迟 */
+  maxDelay?: number;
 }
 
 /**
