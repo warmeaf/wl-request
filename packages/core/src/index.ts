@@ -1,5 +1,15 @@
 // wl-request 核心包入口文件
 
+// 导出适配器相关 API
+export {
+  getAdapter,
+  getDefaultAdapter,
+  registerAdapter,
+  resetAdapters,
+  setDefaultAdapter,
+} from './adapters';
+// 导出配置相关 API
+export { configure, getGlobalConfig, mergeConfig, resetConfig } from './config';
 export { withCache } from './features/cache';
 export { clearPendingRequests, withIdempotent } from './features/idempotent';
 export { parallelRequests } from './features/parallel';

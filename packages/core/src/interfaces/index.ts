@@ -120,3 +120,9 @@ export interface RequestInstance<T = unknown> {
    */
   cancel(): void;
 }
+
+/**
+ * 全局配置类型
+ * 全局配置与请求配置使用相同的类型定义
+ */
+export type { GlobalConfig } from '../types';

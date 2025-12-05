@@ -10,6 +10,7 @@
     "prepare": "husky",
     "format": "biome format --write .",
     "check": "biome check --write .",
+    "typecheck": "tsc --noEmit",
     "commitlint": "commitlint --edit",
     "dev": "vite",
     "build": "pnpm -r build",
