@@ -1,0 +1,38 @@
+{
+  "name": "@wl-request/cache-adapter-memory",
+  "version": "0.1.0",
+  "description": "wl-request 内存缓存适配器",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "request",
+    "cache",
+    "memory",
+    "adapter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "@wl-request/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
+
