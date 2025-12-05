@@ -97,6 +97,29 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
   }
 
   /**
+   * 序列化 Response 对象，移除不可序列化的 raw 属性
+   * @param value 要序列化的值
+   * @returns 序列化后的值
+   */
+  private serializeValue(value: unknown): unknown {
+    if (
+      value &&
+      typeof value === 'object' &&
+      'status' in value &&
+      'statusText' in value &&
+      'headers' in value &&
+      'data' in value
+    ) {
+      const { raw: _raw, ...serializableResponse } = value as {
+        raw?: unknown;
+        [key: string]: unknown;
+      };
+      return serializableResponse;
+    }
+    return value;
+  }
+
+  /**
    * 获取缓存值
    * @param key 缓存键
    * @returns Promise<T | null> 缓存值，不存在或已过期时返回 null
@@ -153,9 +176,11 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
     const expiresAt =
       ttl !== undefined ? (ttl <= 0 ? Date.now() - 1 : Date.now() + ttl) : Number.MAX_SAFE_INTEGER;
 
+    const serializedValue = this.serializeValue(value);
+
     const item: CacheItem = {
       key,
-      value,
+      value: serializedValue,
       expiresAt,
     };
 

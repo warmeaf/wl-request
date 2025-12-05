@@ -1,7 +1,7 @@
 // IndexedDB 缓存适配器测试
 
 import 'fake-indexeddb/auto';
-import type { CacheAdapter } from '@wl-request/core';
+import type { CacheAdapter, Response } from '@wl-request/core';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IndexedDBCacheAdapter } from '../src/index';
 
@@ -269,6 +269,51 @@ describe('IndexedDBCacheAdapter', () => {
       results.forEach((result) => {
         expect(result).toBeNull();
       });
+    });
+  });
+
+  describe('Response 对象序列化', () => {
+    it('应该能够存储包含 raw 属性的 Response 对象', async () => {
+      const mockRawResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers(),
+        body: new ReadableStream(), // 模拟不可序列化的流
+      };
+
+      const response: Response<string> = {
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        data: 'test data',
+        raw: mockRawResponse,
+      };
+
+      // 应该能够成功存储（不会抛出错误）
+      await expect(adapter.set('response-key', response)).resolves.not.toThrow();
+
+      // 读取时应该返回不包含 raw 的对象
+      const cached = await adapter.get<Response<string>>('response-key');
+      expect(cached).not.toBeNull();
+      expect(cached?.status).toBe(200);
+      expect(cached?.statusText).toBe('OK');
+      expect(cached?.headers).toEqual({ 'content-type': 'application/json' });
+      expect(cached?.data).toBe('test data');
+      expect(cached?.raw).toBeUndefined(); // raw 应该被移除
+    });
+
+    it('应该能够存储不包含 raw 属性的 Response 对象', async () => {
+      const response: Response<string> = {
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        data: 'test data',
+      };
+
+      await adapter.set('response-key-2', response);
+      const cached = await adapter.get<Response<string>>('response-key-2');
+      expect(cached).toEqual(response);
     });
   });
 });
