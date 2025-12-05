@@ -4,6 +4,7 @@
   "description": "一个基于 TypeScript 的现代化请求库，采用分层架构设计",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@8.15.3",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky",
