@@ -16,6 +16,18 @@ export { parallelRequests } from './features/parallel';
 // 导出功能模块
 export { retryRequest } from './features/retry';
 export { serialRequests } from './features/serial';
+// 导出 Hook
+export type {
+  ParallelRequestsHookConfig,
+  ParallelRequestsHookResult,
+} from './hooks/useParallelRequests';
+export { useParallelRequests } from './hooks/useParallelRequests';
+export { useRequest } from './hooks/useRequest';
+export type {
+  SerialRequestsHookConfig,
+  SerialRequestsHookResult,
+} from './hooks/useSerialRequests';
+export { useSerialRequests } from './hooks/useSerialRequests';
 // 导出接口
 export type {
   CacheAdapter,
