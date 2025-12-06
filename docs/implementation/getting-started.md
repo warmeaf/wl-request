@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRequest } from 'wl-request'
+import { useRequest } from '@wl-request/core'
 
 const data = ref(null)
 const loading = ref(false)
@@ -33,7 +33,7 @@ const error = ref(null)
 const { send } = useRequest({
   url: '/api/users',
   method: 'GET',
-  onBefore: () => {
+  onBefore: (config) => {
     loading.value = true
     error.value = null
   },
@@ -66,7 +66,7 @@ const handleRefresh = () => {
 在应用启动时配置全局默认设置，所有请求都会继承这些配置：
 
 ```typescript
-import { configure } from 'wl-request'
+import { configure } from '@wl-request/core'
 
 configure({
   baseURL: 'https://api.example.com',

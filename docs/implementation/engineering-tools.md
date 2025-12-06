@@ -118,7 +118,7 @@ pnpm lint-staged
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-pnpm commitlint --edit $1
+pnpm commitlint --edit "$1"
 ```
 
 ## Lint-staged
@@ -135,19 +135,8 @@ pnpm add -D lint-staged
 
 ```javascript
 export default {
-  '*.{js,ts,tsx}': ['biome check --write', 'biome format --write'],
-  '*.{json,md}': ['biome format --write'],
-}
-```
-
-**package.json 配置：**
-
-```json
-{
-  "lint-staged": {
-    "*.{js,ts,tsx}": ["biome check --write", "biome format --write"],
-    "*.{json,md}": ["biome format --write"]
-  }
+  '*.{js,ts,tsx}': ['biome check --write'],
+  '*.json': ['biome format --write'],
 }
 ```
 
