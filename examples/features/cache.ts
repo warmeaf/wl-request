@@ -1,7 +1,6 @@
 // 缓存功能示例
 
 import { FetchAdapter } from '@wl-request/adapter-fetch';
-import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useRequest } from '@wl-request/core';
 
@@ -13,8 +12,6 @@ const output = document.getElementById('output') as HTMLDivElement;
 const btnCache = document.getElementById('btn-cache') as HTMLButtonElement;
 const btnCacheExpired = document.getElementById('btn-cache-expired') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
-
-const cacheAdapter = new MemoryCacheAdapter();
 
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
@@ -46,7 +43,6 @@ btnCache.addEventListener('click', async () => {
       cache: {
         key: 'post-1',
         ttl: 5000, // 5秒缓存
-        cacheAdapter,
       },
       onSuccess: (response) => {
         log(`请求成功: ${JSON.stringify(response.data, null, 2)}`, 'success');
@@ -88,7 +84,6 @@ btnCacheExpired.addEventListener('click', async () => {
       cache: {
         key: 'post-1-expired',
         ttl: 500, // 0.5秒缓存（很短）
-        cacheAdapter,
       },
       onSuccess: (response) => {
         log(`请求成功: ${JSON.stringify(response.data, null, 2)}`, 'success');

@@ -1,7 +1,11 @@
 // 幂等请求功能测试
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearPendingRequests, withIdempotent } from '../../src/features/idempotent';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  clearPendingRequests,
+  resetDefaultCacheAdapter,
+  withIdempotent,
+} from '../../src/features/idempotent';
 import type { CacheAdapter, Response } from '../../src/interfaces';
 import type { IdempotentConfig } from '../../src/types';
 
@@ -38,6 +42,18 @@ describe('withIdempotent', () => {
 
       async clear(): Promise<void> {
         cache.clear();
+      },
+
+      async has(key: string): Promise<boolean> {
+        const item = cache.get(key);
+        if (!item) {
+          return false;
+        }
+        if (Date.now() > item.expiresAt) {
+          cache.delete(key);
+          return false;
+        }
+        return true;
       },
     };
   });
@@ -146,6 +162,9 @@ describe('withIdempotent', () => {
         },
         async clear() {
           // 空实现
+        },
+        async has() {
+          return false;
         },
       };
 
@@ -303,28 +322,118 @@ describe('withIdempotent', () => {
   });
 
   describe('边界情况', () => {
-    it('没有提供缓存适配器时应该直接执行请求', async () => {
-      const response: Response<string> = {
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        data: 'result',
-      };
+    describe('默认缓存适配器', () => {
+      beforeEach(() => {
+        // 确保 localStorage 可用
+        if (typeof global.localStorage === 'undefined') {
+          const storage: Record<string, string> = {};
+          global.localStorage = {
+            getItem: vi.fn((key: string) => storage[key] || null),
+            setItem: vi.fn((key: string, value: string) => {
+              storage[key] = value;
+            }),
+            removeItem: vi.fn((key: string) => {
+              delete storage[key];
+            }),
+            clear: vi.fn(() => {
+              for (const key of Object.keys(storage)) {
+                delete storage[key];
+              }
+            }),
+            get length() {
+              return Object.keys(storage).length;
+            },
+            key: vi.fn((index: number) => Object.keys(storage)[index] || null),
+          } as Storage;
+        }
+      });
 
-      const requestFn = vi.fn().mockResolvedValue(response);
-      const idempotentConfig: IdempotentConfig = {
-        key: 'test-key',
-        ttl: 1000,
-        // 没有提供 cacheAdapter
-      };
+      afterEach(() => {
+        // 清理 localStorage 和默认适配器
+        if (global.localStorage?.clear) {
+          global.localStorage.clear();
+        }
+        resetDefaultCacheAdapter();
+      });
 
-      const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+      it('没有提供缓存适配器时应该使用默认缓存适配器', async () => {
+        const response: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'result',
+        };
 
-      // 应该直接执行请求，不进行幂等检查
-      await idempotentRequest();
-      await idempotentRequest();
+        const requestFn = vi.fn().mockResolvedValue(response);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'test-key',
+          ttl: 1000,
+          // 没有提供 cacheAdapter
+        };
 
-      expect(requestFn).toHaveBeenCalledTimes(2);
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 第一次调用应该执行请求
+        const result1 = await idempotentRequest();
+        expect(result1).toEqual(response);
+        expect(requestFn).toHaveBeenCalledTimes(1);
+
+        // 第二次调用应该从缓存读取（使用默认适配器）
+        const result2 = await idempotentRequest();
+        expect(result2).toEqual(response);
+        expect(requestFn).toHaveBeenCalledTimes(1); // 不应该再次调用
+
+        // 验证 localStorage 中确实存储了缓存
+        const stored = global.localStorage.getItem('wl-request:test-key');
+        expect(stored).toBeTruthy();
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          expect(parsed.value).toEqual({
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            data: 'result',
+          });
+        }
+      });
+
+      it('默认缓存适配器应该支持 TTL 过期', async () => {
+        const response1: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'first result',
+        };
+
+        const response2: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'second result',
+        };
+
+        const requestFn = vi.fn().mockResolvedValueOnce(response1).mockResolvedValueOnce(response2);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'test-key',
+          ttl: 100, // 很短的TTL
+          // 没有提供 cacheAdapter
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 第一次调用
+        const result1 = await idempotentRequest();
+        expect(result1).toEqual(response1);
+        expect(requestFn).toHaveBeenCalledTimes(1);
+
+        // 等待TTL过期
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        // 第二次调用应该重新执行请求
+        const result2 = await idempotentRequest();
+        expect(result2).toEqual(response2);
+        expect(requestFn).toHaveBeenCalledTimes(2);
+      });
     });
 
     it('请求失败时不应该缓存错误结果', async () => {

@@ -1,9 +1,38 @@
 // 幂等请求功能
 
+import { LocalStorageCacheAdapter } from '../adapters/local-storage-cache-adapter';
+import type { CacheAdapter } from '../interfaces';
 import type { IdempotentConfig } from '../types';
 
 // 存储正在进行的请求 Promise（每个 key 对应一个 Promise）
 const pendingRequests = new Map<string, Promise<unknown>>();
+
+/**
+ * 默认 LocalStorageCacheAdapter 实例（延迟加载）
+ */
+let defaultCacheAdapter: CacheAdapter | null = null;
+
+/**
+ * 获取默认缓存适配器
+ * 使用延迟加载避免在非浏览器环境或未使用缓存时创建
+ * @returns LocalStorageCacheAdapter 实例
+ */
+function getDefaultCacheAdapter(): CacheAdapter {
+  if (defaultCacheAdapter) {
+    return defaultCacheAdapter;
+  }
+
+  defaultCacheAdapter = new LocalStorageCacheAdapter();
+  return defaultCacheAdapter;
+}
+
+/**
+ * 重置默认缓存适配器
+ * 用于测试或需要切换默认适配器的场景
+ */
+export function resetDefaultCacheAdapter(): void {
+  defaultCacheAdapter = null;
+}
 
 /**
  * 清除所有正在进行的请求记录
@@ -26,18 +55,16 @@ export function withIdempotent<T>(
 ): () => Promise<T> {
   const { key, ttl, cacheAdapter } = idempotentConfig;
 
-  return (): Promise<T> => {
-    if (!cacheAdapter) {
-      return requestFn();
-    }
+  const adapter = cacheAdapter || getDefaultCacheAdapter();
 
+  return (): Promise<T> => {
     const existingPromise = pendingRequests.get(key);
     if (existingPromise) {
       return existingPromise as Promise<T>;
     }
 
     const requestPromise = (async (): Promise<T> => {
-      const cachedResult = await cacheAdapter.get<T>(key);
+      const cachedResult = await adapter.get<T>(key);
       if (cachedResult !== null) {
         pendingRequests.delete(key);
         return cachedResult;
@@ -45,7 +72,7 @@ export function withIdempotent<T>(
 
       try {
         const result = await requestFn();
-        await cacheAdapter.set(key, result, ttl);
+        await adapter.set(key, result, ttl);
         return result;
       } finally {
         pendingRequests.delete(key);

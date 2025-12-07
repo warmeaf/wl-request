@@ -1,7 +1,6 @@
 // 幂等功能示例
 
 import { FetchAdapter } from '@wl-request/adapter-fetch';
-import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestConfig } from '@wl-request/core';
 import { configure, useRequest } from '@wl-request/core';
 
@@ -13,8 +12,6 @@ const output = document.getElementById('output') as HTMLDivElement;
 const btnIdempotent = document.getElementById('btn-idempotent') as HTMLButtonElement;
 const btnDifferentKeys = document.getElementById('btn-different-keys') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
-
-const cacheAdapter = new MemoryCacheAdapter();
 
 function log(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
@@ -52,7 +49,6 @@ btnIdempotent.addEventListener('click', async () => {
       idempotent: {
         key: 'create-post-123',
         ttl: 5000, // 5秒内相同请求只执行一次
-        cacheAdapter,
       },
       onSuccess: (response) => {
         log(`请求成功: ${JSON.stringify(response.data, null, 2)}`, 'success');
@@ -101,7 +97,6 @@ btnDifferentKeys.addEventListener('click', async () => {
       idempotent: {
         key: 'create-post-456',
         ttl: 5000,
-        cacheAdapter,
       },
     });
 
@@ -117,7 +112,6 @@ btnDifferentKeys.addEventListener('click', async () => {
       idempotent: {
         key: 'create-post-789',
         ttl: 5000,
-        cacheAdapter,
       },
     });
 
