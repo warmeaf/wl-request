@@ -12,6 +12,8 @@ export {
   setDefaultAdapter,
 } from './adapters';
 
+export { LocalStorageCacheAdapter } from './adapters/local-storage-cache-adapter';
+
 // ============================================================================
 // 配置 API
 // ============================================================================
@@ -22,7 +24,7 @@ export { configure, getGlobalConfig, mergeConfig, resetConfig } from './config';
 // 功能模块
 // ============================================================================
 
-export { withCache } from './features/cache';
+export { resetDefaultCacheAdapter, withCache } from './features/cache';
 export { clearPendingRequests, withIdempotent } from './features/idempotent';
 export { parallelRequests } from './features/parallel';
 export { retryRequest } from './features/retry';

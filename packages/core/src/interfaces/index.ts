@@ -102,6 +102,13 @@ export interface CacheAdapter {
    * @returns Promise<void>
    */
   clear(): Promise<void>;
+
+  /**
+   * 检查缓存是否存在
+   * @param key 缓存键
+   * @returns Promise<boolean> 缓存存在返回 true，否则返回 false
+   */
+  has(key: string): Promise<boolean>;
 }
 
 /**
