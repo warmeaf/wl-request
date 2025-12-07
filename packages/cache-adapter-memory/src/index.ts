@@ -73,4 +73,24 @@ export class MemoryCacheAdapter implements CacheAdapter {
   async clear(): Promise<void> {
     this.cache.clear();
   }
+
+  /**
+   * 检查缓存是否存在
+   * @param key 缓存键
+   * @returns Promise<boolean> 缓存存在返回 true，否则返回 false
+   */
+  async has(key: string): Promise<boolean> {
+    const item = this.cache.get(key);
+
+    if (!item) {
+      return false;
+    }
+
+    if (Date.now() > item.expiresAt) {
+      this.cache.delete(key);
+      return false;
+    }
+
+    return true;
+  }
 }

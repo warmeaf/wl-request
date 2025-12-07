@@ -95,6 +95,10 @@ importers:
         version: 5.9.3
 
   packages/core:
+    dependencies:
+      '@wl-request/adapter-fetch':
+        specifier: workspace:*
+        version: link:../adapter-fetch
     devDependencies:
       typescript:
         specifier: ^5.9.3

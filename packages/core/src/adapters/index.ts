@@ -36,7 +36,6 @@ async function createFetchAdapter(): Promise<RequestAdapter> {
     return fetchAdapterInstance;
   }
 
-  // @ts-expect-error - 动态导入，TypeScript 可能无法解析类型
   const { FetchAdapter } = await import('@wl-request/adapter-fetch');
   const adapter = new FetchAdapter() as RequestAdapter;
   fetchAdapterInstance = adapter;

@@ -255,4 +255,46 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
       throw error;
     }
   }
+
+  /**
+   * 检查缓存是否存在
+   * @param key 缓存键
+   * @returns Promise<boolean> 缓存存在返回 true，否则返回 false
+   */
+  async has(key: string): Promise<boolean> {
+    try {
+      const db = await this.getDB();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+
+      return new Promise<boolean>((resolve, reject) => {
+        const request = store.get(key);
+
+        request.onerror = () => {
+          reject(new Error(`Failed to check cache: ${request.error?.message}`));
+        };
+
+        request.onsuccess = () => {
+          const item = request.result as CacheItem | undefined;
+
+          if (!item) {
+            resolve(false);
+            return;
+          }
+
+          if (Date.now() > item.expiresAt) {
+            this.delete(key).catch(() => {
+              // 忽略删除错误
+            });
+            resolve(false);
+            return;
+          }
+
+          resolve(true);
+        };
+      });
+    } catch (_error) {
+      return false;
+    }
+  }
 }
