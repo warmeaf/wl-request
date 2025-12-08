@@ -51,7 +51,7 @@ export default defineConfig({
       ],
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/warmeaf/wl-request' }],
 
     footer: {
       message: 'Released under the MIT License.',
