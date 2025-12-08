@@ -39,6 +39,8 @@ jobs:
         run: pnpm install
 
       - name: Build vitepress
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: pnpm docs:build
 
       - name: Setup Pages

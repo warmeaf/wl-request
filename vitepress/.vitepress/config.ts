@@ -1,9 +1,20 @@
 import { defineConfig } from 'vitepress';
 
+const getBase = () => {
+  if (process.env.GITHUB_REPOSITORY) {
+    const repoName = process.env.GITHUB_REPOSITORY.split('/')[1];
+    return `/${repoName}/`;
+  }
+  if (process.env.BASE_PATH) {
+    return process.env.BASE_PATH;
+  }
+  return '/wl-request/';
+};
+
 export default defineConfig({
   title: 'wl-request',
   description: '现代化 TypeScript 请求库',
-  base: './',
+  base: getBase(),
 
   themeConfig: {
     nav: [
