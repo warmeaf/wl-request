@@ -1,7 +1,7 @@
 {
   "name": "wl-request",
   "version": "0.1.0",
-  "description": "一个基于 TypeScript 的现代化请求库，采用分层架构设计",
+  "description": "一个基于 TypeScript 的请求增强库，采用分层架构设计",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.3",
@@ -19,7 +19,10 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "docs:dev": "vitepress dev vitepress",
+    "docs:build": "vitepress build vitepress",
+    "docs:preview": "vitepress preview vitepress"
   },
   "keywords": [
     "request",
@@ -45,6 +48,7 @@
     "only-allow": "^1.2.2",
     "typescript": "^5.9.3",
     "vite": "8.0.0-beta.0",
+    "vitepress": "^1.6.4",
     "vitest": "^4.0.15"
   },
   "engines": {
