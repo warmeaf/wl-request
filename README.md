@@ -24,12 +24,17 @@
 
 ## 安装
 
-> 仓库使用 pnpm 管理依赖，请确保本地已安装 pnpm。
-
 在实际项目中按需安装对应的包（示例以 axios + IndexedDB 缓存为例）：
 
-```bash path=null start=null
+```bash
+# pnpm
 pnpm add @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-indexeddb
+
+# yarn
+yarn add @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-indexeddb
+
+# npm
+npm install @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-indexeddb
 ```
 
 ## 快速上手
@@ -38,7 +43,7 @@ pnpm add @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-in
 
 在应用入口处配置全局默认设置：
 
-```ts path=null start=null
+```ts
 import { configure } from '@wl-request/core'
 import { AxiosAdapter } from '@wl-request/adapter-axios'
 import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb'
@@ -55,7 +60,7 @@ configure({
 
 下面以 Vue 组件为例，展示最基础的使用方式：
 
-```vue path=null start=null
+```vue
 <template>
   <div>
     <button @click="handleRefresh">刷新</button>
@@ -103,13 +108,11 @@ const handleRefresh = () => {
 </script>
 ```
 
-更多上手示例可参考：`docs/implementation/getting-started.md` 与 `docs/implementation/usage-examples.md`。
-
 ## 典型功能示例
 
 ### 请求重试
 
-```ts path=null start=null
+```ts
 import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
 
 const { send } = useRequest({
@@ -126,7 +129,7 @@ await send()
 
 ### 请求缓存（内存缓存）
 
-```ts path=null start=null
+```ts
 import { useRequest } from '@wl-request/core'
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
 
@@ -146,7 +149,7 @@ await send()
 
 ### 并行请求
 
-```ts path=null start=null
+```ts
 import { useParallelRequests } from '@wl-request/core'
 
 const { send } = useParallelRequests(
@@ -159,13 +162,11 @@ const { send } = useParallelRequests(
 const results = await send()
 ```
 
-更多高级用法请查看 `docs/implementation/usage-examples.md`。
-
 ## 开发与本地调试
 
 克隆仓库后，在根目录执行：
 
-```bash path=null start=null
+```bash
 pnpm install
 ```
 
@@ -186,8 +187,6 @@ pnpm install
 2. **适配器层**：对接 `axios`、`fetch` 等具体实现
 3. **功能层**：重试、缓存、并行/串行、幂等等增强能力
 4. **Hook 层**：封装为 Hooks，方便在组件中直接使用
-
-更详细的架构说明见：`docs/implementation/architecture.md`。
 
 ## 许可证
 
