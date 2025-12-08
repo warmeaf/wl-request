@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress';
 export default defineConfig({
   title: 'wl-request',
   description: '现代化 TypeScript 请求库',
-  base: '/',
+  base: './',
 
   themeConfig: {
     nav: [
