@@ -7,77 +7,90 @@
     <link rel="stylesheet" href="./style.css">
   </head>
   <body class="wide">
-    <h1>wl-request 示例索引</h1>
-    <p class="subtitle">选择下面的示例来查看 wl-request 的各种功能演示</p>
+    <header>
+      <h1>wl-request <span style="color: var(--color-accent-cyan); font-size: 0.5em; vertical-align: middle;">// EXAMPLES</span></h1>
+      <p class="subtitle">探索下一代请求库的功能特性与集成方案</p>
+    </header>
 
-    <div class="category">
-      <h2>基础示例</h2>
-      <div class="examples-grid">
-        <a href="/basic/index.html" class="example-card">
-          <h2>基础示例</h2>
-          <p>演示 wl-request 的基本使用方法，包括 GET、POST 请求和生命周期钩子</p>
-          <span class="path">/basic/index.html</span>
-        </a>
+    <main>
+      <div class="category">
+        <h2>01. 基础示例</h2>
+        <div class="examples-grid">
+          <a href="basic/index.html" class="example-card">
+            <h2>基础用法</h2>
+            <p>掌握 GET/POST 请求、生命周期钩子及全局配置的核心概念。</p>
+            <span class="path">basic/index.html</span>
+          </a>
+        </div>
       </div>
-    </div>
 
-    <div class="category">
-      <h2>功能示例</h2>
-      <div class="examples-grid">
-        <a href="/features/cache.html" class="example-card">
-          <h2>缓存功能</h2>
-          <p>演示如何使用缓存功能来减少重复请求</p>
-          <span class="path">/features/cache.html</span>
-        </a>
+      <div class="category">
+        <h2>02. 核心功能</h2>
+        <div class="examples-grid">
+          <a href="features/cache.html" class="example-card">
+            <h2>智能缓存</h2>
+            <p>内置内存与存储缓存策略，显著提升应用性能与响应速度。</p>
+            <span class="path">features/cache.html</span>
+          </a>
 
-        <a href="/features/retry.html" class="example-card">
-          <h2>重试功能</h2>
-          <p>演示如何使用重试功能来处理失败请求</p>
-          <span class="path">/features/retry.html</span>
-        </a>
+          <a href="features/retry.html" class="example-card">
+            <h2>自动重试</h2>
+            <p>配置指数退避算法，优雅处理网络波动与临时故障。</p>
+            <span class="path">features/retry.html</span>
+          </a>
 
-        <a href="/features/idempotent.html" class="example-card">
-          <h2>幂等功能</h2>
-          <p>演示如何使用幂等功能来防止重复提交</p>
-          <span class="path">/features/idempotent.html</span>
-        </a>
+          <a href="features/idempotent.html" class="example-card">
+            <h2>幂等性控制</h2>
+            <p>防止重复提交，确保关键业务操作的安全性与一致性。</p>
+            <span class="path">features/idempotent.html</span>
+          </a>
 
-        <a href="/features/parallel.html" class="example-card">
-          <h2>并行请求</h2>
-          <p>演示如何使用并行请求功能同时发送多个请求</p>
-          <span class="path">/features/parallel.html</span>
-        </a>
+          <a href="features/parallel.html" class="example-card">
+            <h2>并发请求</h2>
+            <p>高效处理多任务并发，最大化网络吞吐量。</p>
+            <span class="path">features/parallel.html</span>
+          </a>
 
-        <a href="/features/serial.html" class="example-card">
-          <h2>串行请求</h2>
-          <p>演示如何使用串行请求功能按顺序发送多个请求</p>
-          <span class="path">/features/serial.html</span>
-        </a>
+          <a href="features/serial.html" class="example-card">
+            <h2>串行请求</h2>
+            <p>严格控制请求顺序，处理有依赖关系的复杂业务流。</p>
+            <span class="path">features/serial.html</span>
+          </a>
+        </div>
       </div>
-    </div>
 
-    <div class="category">
-      <h2>适配器示例</h2>
-      <div class="examples-grid">
-        <a href="/adapters/axios.html" class="example-card">
-          <h2>Axios 适配器</h2>
-          <p>演示如何使用 Axios 适配器</p>
-          <span class="path">/adapters/axios.html</span>
-        </a>
+      <div class="category">
+        <h2>03. 适配器集成</h2>
+        <div class="examples-grid">
+          <a href="adapters/axios.html" class="example-card">
+            <h2>Axios 适配器</h2>
+            <p>无缝集成 Axios 生态，复用现有拦截器与配置。</p>
+            <span class="path">adapters/axios.html</span>
+          </a>
 
-        <a href="/adapters/cache-memory.html" class="example-card">
-          <h2>内存缓存适配器</h2>
-          <p>演示如何使用内存缓存适配器</p>
-          <span class="path">/adapters/cache-memory.html</span>
-        </a>
+          <a href="adapters/cache-memory.html" class="example-card">
+            <h2>内存缓存</h2>
+            <p>高性能 LRU 内存缓存实现，适用于即时性数据。</p>
+            <span class="path">adapters/cache-memory.html</span>
+          </a>
 
-        <a href="/adapters/cache-indexeddb.html" class="example-card">
-          <h2>IndexedDB 缓存适配器</h2>
-          <p>演示如何使用 IndexedDB 缓存适配器</p>
-          <span class="path">/adapters/cache-indexeddb.html</span>
-        </a>
+          <a href="adapters/cache-indexeddb.html" class="example-card">
+            <h2>IndexedDB 缓存</h2>
+            <p>持久化大数据量存储，支持离线访问与状态恢复。</p>
+            <span class="path">adapters/cache-indexeddb.html</span>
+          </a>
+        </div>
       </div>
-    </div>
+    </main>
+
+    <script>
+      // 动态添加交错动画延迟
+      document.querySelectorAll('.examples-grid').forEach(grid => {
+        const cards = grid.querySelectorAll('.example-card');
+        cards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 0.1}s`;
+        });
+      });
+    </script>
   </body>
 </html>
-

@@ -7,19 +7,30 @@
     <link rel="stylesheet" href="../style.css">
   </head>
   <body>
-    <h1>wl-request 内存缓存适配器示例</h1>
-    <p>这个示例演示了如何使用内存缓存适配器。</p>
+    <nav style="margin-bottom: var(--spacing-4);">
+      <a href="../index.html" style="color: var(--color-accent-cyan); text-decoration: none; font-family: var(--font-mono); font-size: 0.9rem;">&larr; 返回索引</a>
+    </nav>
 
-    <h2>操作</h2>
-    <div class="actions">
-      <button id="btn-memory-cache">使用内存缓存适配器</button>
-      <button id="btn-clear">清空输出</button>
-    </div>
+    <header>
+      <h1>内存缓存适配器</h1>
+      <p class="subtitle">高性能 LRU 内存缓存实现，适用于即时性数据</p>
+    </header>
 
-    <h2>输出</h2>
-    <div id="output"></div>
+    <main>
+      <section>
+        <h2>操作控制 / ACTIONS</h2>
+        <div class="actions">
+          <button id="btn-memory-cache">内存缓存测试</button>
+          <button id="btn-clear">清空日志</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>执行日志 / OUTPUT</h2>
+        <div id="output"></div>
+      </section>
+    </main>
 
     <script type="module" src="./cache-memory.ts"></script>
   </body>
 </html>
-

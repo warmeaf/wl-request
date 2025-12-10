@@ -7,20 +7,31 @@
     <link rel="stylesheet" href="../style.css">
   </head>
   <body>
-    <h1>wl-request 缓存功能示例</h1>
-    <p>这个示例演示了 wl-request 的缓存功能。</p>
+    <nav style="margin-bottom: var(--spacing-4);">
+      <a href="../index.html" style="color: var(--color-accent-cyan); text-decoration: none; font-family: var(--font-mono); font-size: 0.9rem;">&larr; 返回索引</a>
+    </nav>
 
-    <h2>操作</h2>
-    <div class="actions">
-      <button id="btn-cache">缓存请求</button>
-      <button id="btn-cache-expired">缓存过期示例</button>
-      <button id="btn-clear">清空输出</button>
-    </div>
+    <header>
+      <h1>缓存功能</h1>
+      <p class="subtitle">演示如何使用缓存功能来减少重复请求，提升性能</p>
+    </header>
 
-    <h2>输出</h2>
-    <div id="output"></div>
+    <main>
+      <section>
+        <h2>操作控制 / ACTIONS</h2>
+        <div class="actions">
+          <button id="btn-cache">缓存请求</button>
+          <button id="btn-cache-expired">缓存过期示例</button>
+          <button id="btn-clear">清空日志</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>执行日志 / OUTPUT</h2>
+        <div id="output"></div>
+      </section>
+    </main>
 
     <script type="module" src="./cache.ts"></script>
   </body>
 </html>
-
