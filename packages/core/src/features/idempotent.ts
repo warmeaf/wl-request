@@ -62,7 +62,7 @@ export function withIdempotent<T>(
 ): () => Promise<T> {
   const { key, ttl, cacheAdapter } = idempotentConfig;
 
-  const adapter = cacheAdapter || defaultCacheAdapter;
+  const adapter = cacheAdapter || getDefaultCacheAdapter();
 
   if (!adapter) {
     throw new Error(
