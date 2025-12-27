@@ -65,6 +65,47 @@ loadData()
 
 自定义重试条件。
 
+### totalTimeout
+
+- **类型**: `number`
+- **可选**
+
+所有重试操作的总超时时间（毫秒）。
+
+如果配置了此选项，则所有重试（包括初始请求）必须在总超时时间内完成，否则会抛出超时错误。
+
+```typescript
+import { useRequest } from '@wl-request/core'
+
+const request = useRequest({
+  url: '/api/users',
+  method: 'GET',
+  baseURL: 'https://api.example.com',
+  retry: {
+    count: 5,
+    delay: 1000,
+    strategy: RETRY_STRATEGY.EXPONENTIAL,
+    totalTimeout: 10000 // 所有重试在 10 秒内完成
+  }
+})
+
+async function loadData() {
+  try {
+    const response = await request.send()
+    console.log('数据:', response.data)
+  } catch (error) {
+    console.error('错误:', error)
+  }
+}
+
+loadData()
+```
+
+**使用场景**：
+- 限制重试总时长
+- 避免长时间等待多次重试
+- 确保用户体验的及时性
+
 ## 重试策略
 
 ### 线性策略

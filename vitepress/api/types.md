@@ -146,6 +146,7 @@ interface RetryConfig {
   strategy?: RetryStrategy
   maxDelay?: number
   condition?: RetryCondition
+  totalTimeout?: number
 }
 ```
 
@@ -204,6 +205,7 @@ interface CacheAdapter {
   delete(key: string): Promise<void>
   clear(): Promise<void>
   has(key: string): Promise<boolean>
+  cleanup?(): Promise<void>
 }
 ```
 

@@ -44,11 +44,40 @@ loadData()
 ### cacheAdapter
 
 - **类型**: `CacheAdapter`
-- **默认值**: `LocalStorageCacheAdapter`
+- **可选**
 
-缓存存储适配器。  
-如果未显式传入，则在支持 `localStorage` 的环境下默认使用 `LocalStorageCacheAdapter`。  
-在不支持 `localStorage` 的环境（例如 Node）中，必须显式传入自定义缓存适配器（如 `MemoryCacheAdapter`），否则会在创建默认适配器时抛出错误。
+缓存存储适配器。
+
+**三种设置方式**：
+1. **请求配置中显式传入**：
+   ```typescript
+   const request = useRequest({
+     cache: {
+       cacheAdapter: new MemoryCacheAdapter()
+     }
+   })
+   ```
+
+2. **全局配置中设置**：
+   ```typescript
+   import { configure } from '@wl-request/core'
+   import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
+
+   configure({
+     cacheAdapter: new MemoryCacheAdapter()
+   })
+   ```
+
+3. **通过 API 设置全局默认适配器**：
+   ```typescript
+   import { setDefaultCacheAdapter } from '@wl-request/core'
+   import { LocalStorageCacheAdapter } from '@wl-request/core'
+   setDefaultCacheAdapter(new LocalStorageCacheAdapter())
+   ```
+
+**优先级**：请求配置 > 全局配置 > API 设置的全局默认值
+
+**注意**：如果未设置缓存适配器，使用缓存或幂等功能时会抛出错误。
 
 ## 缓存存储
 

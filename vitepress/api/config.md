@@ -70,9 +70,66 @@ function resetConfig(): void
 
 ```typescript
 import { resetConfig } from '@wl-request/core'
-
 resetConfig()
 ```
+
+## setDefaultCacheAdapter
+
+设置默认缓存适配器。
+
+### 类型签名
+
+```typescript
+function setDefaultCacheAdapter(adapter: CacheAdapter): void
+```
+
+### 参数
+
+#### adapter
+
+- **类型**: `CacheAdapter`
+- 缓存适配器实例。
+
+### 示例
+
+```typescript
+import { setDefaultCacheAdapter } from '@wl-request/core'
+import { LocalStorageCacheAdapter } from '@wl-request/core'
+
+// 设置为全局默认缓存适配器
+setDefaultCacheAdapter(new LocalStorageCacheAdapter())
+```
+
+## getDefaultCacheAdapter
+
+获取当前默认缓存适配器。
+
+### 类型签名
+
+```typescript
+function getDefaultCacheAdapter(): CacheAdapter | null
+```
+
+### 返回值
+
+当前默认缓存适配器，未设置时返回 null。
+
+### 示例
+
+```typescript
+import { getDefaultCacheAdapter } from '@wl-request/core'
+
+const adapter = getDefaultCacheAdapter()
+if (adapter) {
+  console.log('当前默认适配器:', adapter)
+}
+```
+
+**优先级说明**：
+此函数返回的适配器可能来自：
+1. `setDefaultCacheAdapter()` 设置的值
+2. `configure()` 中的 `cacheAdapter` 配置
+3. 如果两者都未设置，则返回 null
 
 ## mergeConfig
 

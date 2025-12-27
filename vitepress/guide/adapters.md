@@ -227,6 +227,11 @@ class CustomCacheAdapter implements CacheAdapter {
     // 检查缓存是否存在
     return false
   }
+
+  async cleanup(): Promise<void> {  // 新增方法
+    // 主动清理所有已过期的缓存项
+    // 可选实现，但推荐实现以提高性能
+  }
 }
 ```
 

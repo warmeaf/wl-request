@@ -73,7 +73,41 @@ loadData()
 
 请求适配器实例。
 
-## 请求钩子
+### cacheAdapter
+
+- **类型**: `CacheAdapter`
+- **可选**
+
+默认缓存适配器。
+
+可以通过三种方式设置：
+1. 在请求配置中传递 `cache.cacheAdapter`
+2. 在全局配置中设置
+3. 调用 `setDefaultCacheAdapter()` API
+
+```typescript
+// 方式一：请求配置
+const request = useRequest({
+  cache: { cacheAdapter: new MemoryCacheAdapter() }
+})
+
+// 方式二：全局配置
+import { configure } from '@wl-request/core'
+import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
+
+configure({ cacheAdapter: new MemoryCacheAdapter() })
+
+// 方式三：API 设置
+import { setDefaultCacheAdapter } from '@wl-request/core'
+import { LocalStorageCacheAdapter } from '@wl-request/core'
+setDefaultCacheAdapter(new LocalStorageCacheAdapter())
+```
+
+**优先级**：请求配置 > 全局配置 > API 设置的全局默认值
+
+**注意**：如果未设置缓存适配器，使用缓存或幂等功能时会抛出错误。
+
+### timeout
 
 可以配置全局或实例级别的请求钩子：
 
