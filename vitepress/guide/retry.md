@@ -215,7 +215,7 @@ const request = useRequest({
   retry: {
     count: 3,
     delay: 1000,
-    condition: (error, retryCount) => {
+    condition: (error: RequestError, retryCount: number) => {
       // 仅在 503 或网络错误时重试
       return error.status === 503 || error.code === 'NETWORK_ERROR'
     }
@@ -245,7 +245,7 @@ const request = useRequest({
     count: 3,
     delay: 1000,
     strategy: RETRY_STRATEGY.EXPONENTIAL,
-    condition: (error, retryCount) => error.status === 504
+    condition: (error: RequestError, retryCount: number) => error.status === 504
   }
 })
 
@@ -270,7 +270,7 @@ const request = useRequest({
     count: 5,
     delay: 2000,
     strategy: RETRY_STRATEGY.EXPONENTIAL,
-    condition: (error, retryCount) => error.status === 503
+    condition: (error: RequestError, retryCount: number) => error.status === 503
   }
 })
 
@@ -295,7 +295,7 @@ const request = useRequest({
     count: 3,
     delay: 500,
     strategy: RETRY_STRATEGY.LINEAR,
-    condition: (error, retryCount) => error.code === 'NETWORK_ERROR'
+    condition: (error: RequestError, retryCount: number) => error.code === 'NETWORK_ERROR'
   }
 })
 

@@ -83,12 +83,16 @@ loadData()
 
 ### LocalStorage
 
-默认缓存存储，适用于小数据量。
+默认缓存存储，适用于小数据量。支持自定义缓存键前缀。
+
+**构造函数参数**：
+- `prefix`：缓存键前缀，默认为 'wl-request:'
 
 ```typescript
 import { useRequest, LocalStorageCacheAdapter } from '@wl-request/core'
 
-const request = useRequest({
+// 使用默认前缀
+const request1 = useRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -99,8 +103,20 @@ const request = useRequest({
   }
 })
 
+// 使用自定义前缀（用于多实例隔离）
+const request2 = useRequest({
+  url: '/api/posts',
+  method: 'GET',
+  baseURL: 'https://api.example.com',
+  cache: {
+    key: 'posts',
+    ttl: 60000,
+    cacheAdapter: new LocalStorageCacheAdapter('my-app:')
+  }
+})
+
 async function loadData() {
-  const response = await request.send()
+  const response = await request1.send()
   console.log('数据:', response.data)
 }
 
@@ -141,17 +157,31 @@ new MemoryCacheAdapter({ maxEntries: 100 })  // 限制最多缓存 100 个条目
 new MemoryCacheAdapter()                     // 无限制
 ```
 
-- `maxEntries`：最大缓存条目数，超过时淘汰最旧的项
+- `maxEntries`：最大缓存条目数，超过时淘汰**最早过期**的项（而不是最早添加的项）
+
+::: note
+淘汰策略说明：
+当缓存数量超过 maxEntries 时，会删除 **expiresAt 最小**（即最早过期）的条目，
+而不是最早添加的条目。这种策略可以优先保留更长时间有效的缓存。
+:::
 
 ### IndexedDB
 
 适用于大数据量缓存。
 
+**构造函数参数**：
+- `dbName`：数据库名称，默认为 'wl-request-cache'
+- `storeName`：对象存储名称，默认为 'cache'
+
 ```typescript
 import { useRequest } from '@wl-request/core'
 import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb'
 
+// 创建 IndexedDB 缓存适配器（使用默认值）
 const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db')
+
+// 或自定义数据库名称和对象存储名称
+const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db', 'cache')
 
 const request = useRequest({
   url: '/api/users',

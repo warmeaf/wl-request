@@ -85,6 +85,8 @@ interface ParallelRequestsHookConfig<T = unknown> {
 }
 ```
 
+- **failFast**：失败策略，`true` 表示任一请求失败时整体失败（默认），`false` 表示允许部分失败
+
 ### 返回值
 
 ```typescript
@@ -95,8 +97,20 @@ interface ParallelRequestsHookResult<T = unknown> {
 ```
 
 **`send()` 返回值说明**：
-- `failFast: true`（默认）：所有请求成功时返回完整结果数组，任一请求失败时抛出异常
-- `failFast: false`：始终返回成功请求的结果数组（可能为空数组）
+
+- `failFast: true`（默认）：
+  - 所有请求成功时：返回 `Response<T>[]`，包含所有请求的结果
+  - 任一请求失败时：抛出第一个错误（RequestError）
+
+- `failFast: false`：
+  - 返回 `Response<T>[]`，只包含成功请求的结果
+  - 如果没有成功的请求，返回空数组 `[]`
+  - 注意：即使部分请求失败，也不会抛出错误
+
+::: tip
+在 `failFast: false` 模式下，可以通过 `onError` 钩子获取失败请求的错误信息。
+:::
+
 
 ### 示例
 
@@ -170,6 +184,8 @@ interface SerialRequestsHookConfig<T = unknown> {
 }
 ```
 
+- **onError**：某个请求失败时的回调，`index` 参数表示失败请求在数组中的索引（从 0 开始）
+
 ### 返回值
 
 ```typescript
@@ -178,6 +194,8 @@ interface SerialRequestsHookResult<T = unknown> {
   cancel: () => void
 }
 ```
+
+**`send()` 返回值说明**：按顺序返回所有请求的结果数组，任一请求失败时会中断后续请求并抛出异常。
 
 ### 示例
 

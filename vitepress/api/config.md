@@ -100,6 +100,25 @@ import { LocalStorageCacheAdapter } from '@wl-request/core'
 setDefaultCacheAdapter(new LocalStorageCacheAdapter())
 ```
 
+## resetDefaultCacheAdapter
+
+重置默认缓存适配器为 null。
+
+### 类型签名
+
+```typescript
+function resetDefaultCacheAdapter(): void
+```
+
+### 示例
+
+```typescript
+import { resetDefaultCacheAdapter } from '@wl-request/core'
+
+// 重置默认缓存适配器
+resetDefaultCacheAdapter()
+```
+
 ## getDefaultCacheAdapter
 
 获取当前默认缓存适配器。
@@ -299,7 +318,8 @@ function getAdapter(name?: string): RequestAdapter | null
 
 ### 返回值
 
-适配器实例，如果未找到则返回 null。
+- 当 `name` 未指定或为 `'default'` 时，返回默认适配器实例（永远不会为 null）
+- 当指定具体名称且未找到时，返回 `null`
 
 ### 示例
 
@@ -323,6 +343,8 @@ function getDefaultAdapter(): RequestAdapter
 ### 返回值
 
 默认适配器实例。
+
+如果未设置默认适配器，则返回一个代理适配器（Proxy Adapter）。代理适配器会在首次请求时异步加载 FetchAdapter。
 
 ### 示例
 
