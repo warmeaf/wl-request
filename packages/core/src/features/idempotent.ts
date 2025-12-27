@@ -72,15 +72,18 @@ export function withIdempotent<T>(
     }
 
     const requestPromise = (async (): Promise<T> => {
-      const cachedResult = await adapter.get<T>(key);
-      if (cachedResult !== null) {
-        pendingRequests.delete(key);
-        return cachedResult;
-      }
-
       try {
+        const cachedResult = await adapter.get<T>(key);
+        if (cachedResult !== null) {
+          return cachedResult;
+        }
+
         const result = await requestFn();
-        await adapter.set(key, result, ttl);
+        try {
+          await adapter.set(key, result, ttl);
+        } catch {
+          // 缓存设置失败不应该阻止结果返回
+        }
         return result;
       } finally {
         pendingRequests.delete(key);

@@ -13,12 +13,49 @@ interface CacheItem {
 }
 
 /**
+ * 内存缓存适配器配置选项
+ */
+interface CacheAdapterOptions {
+  /** 最大缓存条目数，超过时淘汰最旧的项 */
+  maxEntries?: number;
+}
+
+/**
  * 内存缓存适配器
- * 基于内存 Map 存储，支持 TTL 过期清理
+ * 基于内存 Map 存储，支持 TTL 过期清理和最大容量限制
  */
 export class MemoryCacheAdapter implements CacheAdapter {
   /** 内存存储 */
   private cache: Map<string, CacheItem> = new Map();
+  /** 最大缓存条目数 */
+  private maxEntries?: number;
+
+  /**
+   * 构造函数
+   * @param options 配置选项
+   */
+  constructor(options?: CacheAdapterOptions) {
+    this.maxEntries = options?.maxEntries;
+  }
+
+  /**
+   * 淘汰最旧的缓存项
+   */
+  private evictOldest(): void {
+    let oldestKey: string | null = null;
+    let oldestExpiresAt = Infinity;
+
+    for (const [key, item] of this.cache.entries()) {
+      if (item.expiresAt < oldestExpiresAt) {
+        oldestExpiresAt = item.expiresAt;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey !== null) {
+      this.cache.delete(oldestKey);
+    }
+  }
 
   /**
    * 获取缓存值
@@ -55,6 +92,11 @@ export class MemoryCacheAdapter implements CacheAdapter {
       value,
       expiresAt,
     });
+
+    // 如果设置了 maxEntries，清理多余的项
+    if (this.maxEntries !== undefined && this.cache.size > this.maxEntries) {
+      this.evictOldest();
+    }
   }
 
   /**

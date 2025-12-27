@@ -357,4 +357,64 @@ describe('MemoryCacheAdapter', () => {
       await expect(adapter.cleanup?.()).resolves.not.toThrow();
     });
   });
+
+  describe('maxEntries 容量限制', () => {
+    it('应该接受 maxEntries 配置参数', () => {
+      const adapterWithLimit = new MemoryCacheAdapter({ maxEntries: 100 });
+      expect(adapterWithLimit).toBeDefined();
+    });
+
+    it('超过 maxEntries 时应该淘汰最旧的缓存项', async () => {
+      const adapterWithLimit = new MemoryCacheAdapter({ maxEntries: 3 });
+
+      // 设置 4 个缓存项
+      await adapterWithLimit.set('key-1', 'value-1');
+      await adapterWithLimit.set('key-2', 'value-2');
+      await adapterWithLimit.set('key-3', 'value-3');
+      await adapterWithLimit.set('key-4', 'value-4'); // 这应该触发淘汰
+
+      // key-1 应该被淘汰
+      expect(await adapterWithLimit.get('key-1')).toBeNull();
+
+      // key-2, key-3, key-4 应该保留
+      expect(await adapterWithLimit.get('key-2')).toBe('value-2');
+      expect(await adapterWithLimit.get('key-3')).toBe('value-3');
+      expect(await adapterWithLimit.get('key-4')).toBe('value-4');
+    });
+
+    it('未设置 maxEntries 时不应该有数量限制', async () => {
+      const adapterNoLimit = new MemoryCacheAdapter();
+
+      // 设置大量缓存项
+      for (let i = 0; i < 100; i++) {
+        await adapterNoLimit.set(`key-${i}`, `value-${i}`);
+      }
+
+      // 所有缓存项都应该存在
+      expect(await adapterNoLimit.get('key-0')).toBe('value-0');
+      expect(await adapterNoLimit.get('key-99')).toBe('value-99');
+    });
+
+    it('clear 方法应该重置缓存状态', async () => {
+      const adapterWithLimit = new MemoryCacheAdapter({ maxEntries: 3 });
+
+      await adapterWithLimit.set('key-1', 'value-1');
+      await adapterWithLimit.set('key-2', 'value-2');
+      await adapterWithLimit.set('key-3', 'value-3');
+
+      await adapterWithLimit.clear();
+
+      // 重新添加超过 maxEntries 的项
+      await adapterWithLimit.set('key-4', 'value-4');
+      await adapterWithLimit.set('key-5', 'value-5');
+      await adapterWithLimit.set('key-6', 'value-6');
+      await adapterWithLimit.set('key-7', 'value-7');
+
+      // key-4 应该被淘汰，其他应该保留
+      expect(await adapterWithLimit.get('key-4')).toBeNull();
+      expect(await adapterWithLimit.get('key-5')).toBe('value-5');
+      expect(await adapterWithLimit.get('key-6')).toBe('value-6');
+      expect(await adapterWithLimit.get('key-7')).toBe('value-7');
+    });
+  });
 });

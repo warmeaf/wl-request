@@ -324,6 +324,171 @@ describe('withIdempotent', () => {
   });
 
   describe('边界情况', () => {
+    describe('错误处理', () => {
+      it('adapter.get() 抛出错误时应该正确传播错误', async () => {
+        const errorAdapter: CacheAdapter = {
+          async get<T>(): Promise<T | null> {
+            throw new Error('Adapter get error');
+          },
+          async set<_T>(): Promise<void> {},
+          async delete(): Promise<void> {},
+          async clear(): Promise<void> {},
+          async has(): Promise<boolean> {
+            return false;
+          },
+        };
+
+        const response: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'result',
+        };
+
+        const requestFn = vi.fn().mockResolvedValue(response);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'error-key',
+          ttl: 1000,
+          cacheAdapter: errorAdapter,
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 应该抛出 adapter 的错误
+        await expect(idempotentRequest()).rejects.toThrow('Adapter get error');
+      });
+
+      it('adapter.set() 抛出错误时不应该影响请求结果返回', async () => {
+        const errorOnSetAdapter: CacheAdapter = {
+          async get<T>(): Promise<T | null> {
+            return null; // 缓存未命中
+          },
+          async set<_T>(): Promise<void> {
+            throw new Error('Adapter set error');
+          },
+          async delete(): Promise<void> {},
+          async clear(): Promise<void> {},
+          async has(): Promise<boolean> {
+            return false;
+          },
+        };
+
+        const response: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'result',
+        };
+
+        const requestFn = vi.fn().mockResolvedValue(response);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'set-error-key',
+          ttl: 1000,
+          cacheAdapter: errorOnSetAdapter,
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 请求应该成功返回（set 错误不应该影响结果）
+        const result = await idempotentRequest();
+        expect(result).toEqual(response);
+
+        // 请求函数应该被调用
+        expect(requestFn).toHaveBeenCalledTimes(1);
+      });
+
+      it('并发请求在缓存命中时应该都能正确返回结果', async () => {
+        const response: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'result',
+        };
+
+        // 预填充缓存
+        const cache = new Map<string, { value: unknown; expiresAt: number }>();
+        cache.set('idempotent-key', {
+          value: response,
+          expiresAt: Date.now() + 1000,
+        });
+
+        const preFilledAdapter: CacheAdapter = {
+          async get<T>(key: string): Promise<T | null> {
+            const item = cache.get(key);
+            if (!item) return null;
+            if (Date.now() > item.expiresAt) {
+              cache.delete(key);
+              return null;
+            }
+            return item.value as T;
+          },
+          async set<T>(key: string, value: T): Promise<void> {
+            cache.set(key, { value, expiresAt: Date.now() + 1000 });
+          },
+          async delete(key: string): Promise<void> {
+            cache.delete(key);
+          },
+          async clear(): Promise<void> {
+            cache.clear();
+          },
+          async has(key: string): Promise<boolean> {
+            const item = cache.get(key);
+            if (!item) return false;
+            if (Date.now() > item.expiresAt) {
+              cache.delete(key);
+              return false;
+            }
+            return true;
+          },
+        };
+
+        const requestFn = vi.fn().mockResolvedValue(response);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'idempotent-key',
+          ttl: 1000,
+          cacheAdapter: preFilledAdapter,
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 并发调用 - 缓存命中
+        const results = await Promise.all([
+          idempotentRequest(),
+          idempotentRequest(),
+          idempotentRequest(),
+        ]);
+
+        // 所有结果应该相同
+        expect(results[0]).toEqual(response);
+        expect(results[1]).toEqual(response);
+        expect(results[2]).toEqual(response);
+
+        // 请求函数应该从未被调用（缓存命中）
+        expect(requestFn).toHaveBeenCalledTimes(0);
+      });
+
+      it('请求失败时 pendingRequests 应该被正确清理', async () => {
+        const error = new Error('Request failed');
+        const requestFn = vi.fn().mockRejectedValue(error);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'fail-key',
+          ttl: 1000,
+          cacheAdapter: mockCacheAdapter,
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 第一次调用失败
+        await expect(idempotentRequest()).rejects.toThrow('Request failed');
+
+        // 再次调用应该能够再次执行请求（pendingRequests 已被清理）
+        await expect(idempotentRequest()).rejects.toThrow('Request failed');
+
+        // 请求函数应该被调用两次
+        expect(requestFn).toHaveBeenCalledTimes(2);
+      });
+    });
+
     describe('默认缓存适配器', () => {
       beforeEach(() => {
         // 确保 localStorage 可用

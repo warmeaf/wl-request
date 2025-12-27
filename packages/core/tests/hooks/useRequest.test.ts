@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetAdapters, setDefaultAdapter } from '../../src/adapters';
 import { resetConfig } from '../../src/config';
 import { clearPendingRequests } from '../../src/features/idempotent';
-import { useRequest } from '../../src/hooks/useRequest';
+import { createRequestHook, useRequest } from '../../src/hooks/useRequest';
 import type { CacheAdapter, RequestAdapter, RequestConfig, Response } from '../../src/interfaces';
 
 describe('useRequest', () => {
@@ -460,6 +460,23 @@ describe('useRequest', () => {
           config: expect.objectContaining({ url: '/api/users' }),
         })
       );
+    });
+  });
+
+  describe('命名说明', () => {
+    it('createRequestHook 应该与 useRequest 功能相同', () => {
+      const config: RequestConfig = {
+        url: '/api/users',
+      };
+
+      const result1 = useRequest(config);
+      const result2 = createRequestHook(config);
+
+      // 两者应该返回相同结构
+      expect(typeof result2.send).toBe('function');
+      expect(typeof result2.cancel).toBe('function');
+      expect(typeof result1.send).toBe(typeof result2.send);
+      expect(typeof result1.cancel).toBe(typeof result2.cancel);
     });
   });
 });

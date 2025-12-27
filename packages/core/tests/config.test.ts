@@ -290,6 +290,104 @@ describe('全局配置管理', () => {
     });
   });
 
+  describe('headers/params 边界情况', () => {
+    beforeEach(() => {
+      resetConfig();
+    });
+
+    it('当 local headers 为 null 时应该保留 local 值', () => {
+      configure({
+        headers: { 'Global-Header': 'global-value' },
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        headers: null as unknown as Record<string, string>,
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      expect(merged.headers).toBeNull();
+    });
+
+    it('当 global headers 为 null 时应该使用 local headers', () => {
+      configure({
+        headers: null as unknown as Record<string, string>,
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        headers: { 'Local-Header': 'local-value' },
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      expect(merged.headers).toEqual({ 'Local-Header': 'local-value' });
+    });
+
+    it('当 global headers 为数组时应该使用 local 值', () => {
+      configure({
+        headers: ['Array-Header'] as unknown as Record<string, string>,
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        headers: { 'Local-Header': 'local-value' },
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      expect(merged.headers).toEqual({ 'Local-Header': 'local-value' });
+    });
+
+    it('当 local headers 为数组时应该保留 local 值（数组类型）', () => {
+      configure({
+        headers: { 'Global-Header': 'global-value' },
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        headers: ['Array-Header'] as unknown as Record<string, string>,
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      // local 为数组时，保留 local 值
+      expect(merged.headers).toEqual(['Array-Header']);
+    });
+
+    it('当 global params 为 null 时应该使用 local params', () => {
+      configure({
+        params: null as unknown as Record<string, string>,
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        params: { 'local-param': 'local-value' },
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      expect(merged.params).toEqual({ 'local-param': 'local-value' });
+    });
+
+    it('当 local params 为数组时应该保留 local 值（数组类型）', () => {
+      configure({
+        params: { 'global-param': 'global-value' },
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        params: ['Array-Param'] as unknown as Record<string, string>,
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      // local 为数组时，保留 local 值
+      expect(merged.params).toEqual(['Array-Param']);
+    });
+  });
+
   describe('重置功能', () => {
     it('resetConfig 应该清空所有全局配置', () => {
       configure({

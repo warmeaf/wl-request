@@ -578,7 +578,7 @@ describe('useParallelRequests', () => {
         expect(results[1].data).toEqual({ url: '/api/posts' });
       });
 
-      it('failFast: false 且所有请求都失败时，应该返回空数组', async () => {
+      it('failFast: false 且所有请求都失败时，应该返回空数组并调用 onSuccess（空数组）', async () => {
         const error1 = new Error('Error 1');
         const error2 = new Error('Error 2');
         mockAdapter = {
@@ -613,7 +613,9 @@ describe('useParallelRequests', () => {
 
         expect(results).toHaveLength(0);
         expect(onError).toHaveBeenCalledTimes(1);
-        expect(onSuccess).not.toHaveBeenCalled();
+        // failFast: false 时，即使没有成功结果也应该调用 onSuccess（空数组）
+        expect(onSuccess).toHaveBeenCalledTimes(1);
+        expect(onSuccess).toHaveBeenCalledWith([]);
       });
 
       it('默认行为（不设置 failFast）应该等同于 failFast: true', async () => {

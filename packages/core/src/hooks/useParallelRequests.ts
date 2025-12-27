@@ -77,7 +77,8 @@ export function useParallelRequests<T = unknown>(
         }
       }
 
-      if (successResults.length > 0 && hookConfig?.onSuccess) {
+      // failFast: false 时，即使没有成功结果也调用 onSuccess（空数组）
+      if (hookConfig?.onSuccess) {
         await hookConfig.onSuccess(successResults);
       }
 

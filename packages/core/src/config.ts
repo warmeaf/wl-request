@@ -140,6 +140,9 @@ export function mergeConfig<T = unknown>(
             localValue as Record<string, unknown>
           );
         }
+      } else {
+        // 当 headers/params 条件不满足时（如任一值为 null/数组），使用 local 值覆盖
+        (result as Record<string, unknown>)[key] = localValue;
       }
     }
   }

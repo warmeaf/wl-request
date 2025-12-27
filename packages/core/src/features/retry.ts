@@ -70,7 +70,8 @@ export async function retryRequest<T>(
   const startTime = Date.now();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  const timeoutPromise = totalTimeout
+  // 用于超时时拒绝的 Promise（用于检测超时条件，不直接 await）
+  const timeoutRejector = totalTimeout
     ? new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error(`Retry total timeout exceeded (${totalTimeout}ms)`));
@@ -87,7 +88,7 @@ export async function retryRequest<T>(
   }
 
   while (retryCount < count) {
-    if (timeoutPromise && totalTimeout) {
+    if (timeoutRejector && totalTimeout) {
       const elapsed = Date.now() - startTime;
       const remaining = totalTimeout - elapsed;
       if (remaining <= 0) {
@@ -106,7 +107,7 @@ export async function retryRequest<T>(
 
     const delayTime = calculateDelay(retryCount, baseDelay, strategy, maxDelay);
 
-    if (timeoutPromise && totalTimeout) {
+    if (timeoutRejector && totalTimeout) {
       const elapsed = Date.now() - startTime;
       const remaining = totalTimeout - elapsed;
       if (delayTime > remaining) {
