@@ -32,7 +32,7 @@
     "adapter",
     "typescript"
   ],
-  "author": "",
+  "author": "warmleaf",
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",

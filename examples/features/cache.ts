@@ -2,10 +2,13 @@
 
 import { FetchAdapter } from '@wl-request/adapter-fetch';
 import type { RequestConfig } from '@wl-request/core';
-import { configure, useRequest } from '@wl-request/core';
+import { configure, LocalStorageCacheAdapter, useRequest } from '@wl-request/core';
+
+const localStorageCacheAdapter = new LocalStorageCacheAdapter();
 
 configure({
   baseURL: 'https://jsonplaceholder.typicode.com',
+  cacheAdapter: localStorageCacheAdapter,
 });
 
 const output = document.getElementById('output') as HTMLDivElement;
