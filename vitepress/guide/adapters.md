@@ -145,7 +145,7 @@ new MemoryCacheAdapter({ maxEntries: 100 })  // 限制最多缓存 100 个条目
 new MemoryCacheAdapter()                     // 无限制
 ```
 
-- `maxEntries`：最大缓存条目数，超过时淘汰最旧的项
+- `maxEntries`：最大缓存条目数，超过时淘汰最旧的项（可选参数）
 
 ### IndexedDB 适配器
 

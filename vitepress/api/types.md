@@ -190,7 +190,7 @@ interface IdempotentConfig {
 
 ```typescript
 interface RequestAdapter {
-  request<T>(config: RequestConfig): Promise<Response<T>>
+  request<T = unknown>(config: RequestConfig<T>): Promise<Response<T>>
 }
 ```
 
