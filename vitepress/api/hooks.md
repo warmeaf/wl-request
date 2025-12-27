@@ -94,6 +94,10 @@ interface ParallelRequestsHookResult<T = unknown> {
 }
 ```
 
+**`send()` 返回值说明**：
+- `failFast: true`（默认）：所有请求成功时返回完整结果数组，任一请求失败时抛出异常
+- `failFast: false`：始终返回成功请求的结果数组（可能为空数组）
+
 ### 示例
 
 ```typescript
