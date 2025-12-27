@@ -5,6 +5,7 @@ import {
   resetDefaultCacheAdapter,
   setDefaultCacheAdapter,
 } from '../adapters';
+import type { RequestConfig } from '../interfaces';
 import type { CacheConfig } from '../types';
 
 // 重新导出缓存适配器注册表函数，保持向后兼容
@@ -14,15 +15,18 @@ export { setDefaultCacheAdapter, resetDefaultCacheAdapter, getDefaultCacheAdapte
  * 使用缓存包装请求函数
  * @param requestFn 请求函数，返回 Promise
  * @param cacheConfig 缓存配置
+ * @param requestConfig 请求配置（用于获取顶层的 cacheAdapter）
  * @returns 包装后的请求函数
  */
-export function withCache<T>(
+export function withCache<T, C = unknown>(
   requestFn: () => Promise<T>,
-  cacheConfig: CacheConfig
+  cacheConfig: CacheConfig,
+  requestConfig?: RequestConfig<C>
 ): () => Promise<T> {
   const { key, ttl, cacheAdapter: configAdapter } = cacheConfig;
 
-  const adapter = configAdapter || getDefaultCacheAdapter();
+  // 优先级：cache.cacheAdapter > RequestConfig.cacheAdapter > getDefaultCacheAdapter()
+  const adapter = configAdapter || requestConfig?.cacheAdapter || getDefaultCacheAdapter();
 
   if (!adapter) {
     throw new Error(

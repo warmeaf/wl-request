@@ -5,6 +5,7 @@ import {
   resetDefaultCacheAdapter,
   setDefaultCacheAdapter,
 } from '../adapters';
+import type { RequestConfig } from '../interfaces';
 import type { IdempotentConfig } from '../types';
 
 // 存储正在进行的请求 Promise（每个 key 对应一个 Promise）
@@ -26,15 +27,18 @@ export function clearPendingRequests(): void {
  * 相同请求在 TTL 内不会重复执行，而是返回缓存的 Promise 或结果
  * @param requestFn 请求函数，返回 Promise
  * @param idempotentConfig 幂等配置
+ * @param requestConfig 请求配置（用于获取顶层的 cacheAdapter）
  * @returns 包装后的请求函数
  */
-export function withIdempotent<T>(
+export function withIdempotent<T, C = unknown>(
   requestFn: () => Promise<T>,
-  idempotentConfig: IdempotentConfig
+  idempotentConfig: IdempotentConfig,
+  requestConfig?: RequestConfig<C>
 ): () => Promise<T> {
   const { key, ttl, cacheAdapter } = idempotentConfig;
 
-  const adapter = cacheAdapter || getDefaultCacheAdapter();
+  // 优先级：idempotent.cacheAdapter > RequestConfig.cacheAdapter > getDefaultCacheAdapter()
+  const adapter = cacheAdapter || requestConfig?.cacheAdapter || getDefaultCacheAdapter();
 
   if (!adapter) {
     throw new Error(

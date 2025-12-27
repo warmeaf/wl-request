@@ -91,11 +91,11 @@ export function createRequest<T = unknown>(config: RequestConfig<T>): RequestIns
       let requestFn = buildRequestFn(finalConfig);
 
       if (finalConfig.idempotent) {
-        requestFn = withIdempotent(requestFn, finalConfig.idempotent);
+        requestFn = withIdempotent(requestFn, finalConfig.idempotent, finalConfig);
       }
 
       if (finalConfig.cache) {
-        requestFn = withCache(requestFn, finalConfig.cache);
+        requestFn = withCache(requestFn, finalConfig.cache, finalConfig);
       }
 
       const requestPromise = finalConfig.retry
