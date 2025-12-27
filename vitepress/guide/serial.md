@@ -187,7 +187,39 @@ loadData()
 
 ## 错误处理
 
-串行请求中，任何一个请求失败都会中断后续请求：
+串行请求中，任何一个请求失败都会中断后续请求。`useSerialRequests` 提供了 `onError` 钩子来处理错误，并且可以知道是第几个请求失败了：
+
+```typescript
+import { useSerialRequests } from '@wl-request/core'
+
+const { send } = useSerialRequests(
+  [
+    { url: '/user', method: 'GET', baseURL: 'https://api.example.com' },
+    { url: '/invalid', method: 'GET', baseURL: 'https://api.example.com' }, // 这个请求会失败
+    { url: '/posts', method: 'GET', baseURL: 'https://api.example.com' } // 不会执行
+  ],
+  {
+    onError: (error, index) => {
+      console.error(`第 ${index + 1} 个请求失败:`, error.message)
+    }
+  }
+)
+
+async function loadData() {
+  try {
+    const results = await send()
+    console.log('所有请求成功:', results)
+  } catch (error) {
+    console.error('请求被中断:', error)
+  }
+}
+
+loadData()
+```
+
+### 错误处理对比
+
+手动顺序调用多个请求时，同样会有错误中断行为：
 
 ```typescript
 import { useRequest } from '@wl-request/core'
@@ -208,6 +240,8 @@ async function loadData() {
 
 loadData()
 ```
+
+两种方式的错误中断行为一致，但 `useSerialRequests` 通过 `onError` 钩子的 `index` 参数，可以更方便地定位是第几个请求失败了。
 
 ## 使用场景
 
