@@ -162,7 +162,7 @@ loadData()
 
 ### 固定策略
 
-不延迟，立即重试。
+每次重试使用固定的延迟时间（`delay` 配置项的值）。
 
 ```typescript
 import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
@@ -173,7 +173,7 @@ const request = useRequest({
   baseURL: 'https://api.example.com',
   retry: {
     count: 3,
-    delay: 0,
+    delay: 1000,      // 每次重试延迟 1000 毫秒
     strategy: RETRY_STRATEGY.FIXED
   }
 })
@@ -184,6 +184,21 @@ async function loadData() {
 }
 
 loadData()
+```
+
+如果需要立即重试（不延迟），可以将 `delay` 设置为 `0`：
+
+```typescript
+const request = useRequest({
+  url: '/api/users',
+  method: 'GET',
+  baseURL: 'https://api.example.com',
+  retry: {
+    count: 3,
+    delay: 0,         // 不延迟，立即重试
+    strategy: RETRY_STRATEGY.FIXED
+  }
+})
 ```
 
 ## 自定义重试条件
