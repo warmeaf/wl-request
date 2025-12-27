@@ -35,10 +35,10 @@ type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPT
 
 ```typescript
 interface Response<T = unknown> {
-  data: T
   status: number
   statusText: string
   headers: ResponseHeaders
+  data: T
   raw?: unknown
 }
 ```

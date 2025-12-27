@@ -349,3 +349,32 @@ import { resetAdapters } from '@wl-request/core'
 
 resetAdapters()
 ```
+
+## clearPendingRequests
+
+清除所有正在进行的幂等请求记录。
+
+### 类型签名
+
+```typescript
+function clearPendingRequests(): void
+```
+
+### 说明
+
+此函数会清除所有待处理的幂等请求记录。主要用于：
+- 测试环境清理状态
+- 强制取消所有等待中的幂等请求
+
+::: warning
+调用此函数后，正在等待相同幂等键的请求将无法共享结果，会各自独立执行。
+:::
+
+### 示例
+
+```typescript
+import { clearPendingRequests } from '@wl-request/core'
+
+// 测试后清理
+clearPendingRequests()
+```
