@@ -1,25 +1,32 @@
 // 请求缓存功能
 
-import { LocalStorageCacheAdapter } from '../adapters/local-storage-cache-adapter';
+import { getGlobalConfig } from '../config';
 import type { CacheAdapter } from '../interfaces';
 import type { CacheConfig } from '../types';
 
 /**
- * 默认 LocalStorageCacheAdapter 实例（延迟加载）
+ * 默认缓存适配器
+ * 必须通过 setDefaultCacheAdapter 设置，或者在全局配置中指定
  */
 let defaultCacheAdapter: CacheAdapter | null = null;
 
 /**
- * 获取默认缓存适配器
- * 使用延迟加载避免在非浏览器环境或未使用缓存时创建
- * @returns LocalStorageCacheAdapter 实例
+ * 设置默认缓存适配器
+ * @param adapter 缓存适配器实例
  */
-function getDefaultCacheAdapter(): CacheAdapter {
-  if (defaultCacheAdapter) {
-    return defaultCacheAdapter;
-  }
+export function setDefaultCacheAdapter(adapter: CacheAdapter): void {
+  defaultCacheAdapter = adapter;
+}
 
-  defaultCacheAdapter = new LocalStorageCacheAdapter();
+/**
+ * 获取默认缓存适配器
+ * @returns 当前默认缓存适配器，未设置时返回 null
+ */
+export function getDefaultCacheAdapter(): CacheAdapter | null {
+  const globalConfig = getGlobalConfig();
+  if (globalConfig.cacheAdapter) {
+    return globalConfig.cacheAdapter;
+  }
   return defaultCacheAdapter;
 }
 
@@ -41,9 +48,15 @@ export function withCache<T>(
   requestFn: () => Promise<T>,
   cacheConfig: CacheConfig
 ): () => Promise<T> {
-  const { key, ttl, cacheAdapter } = cacheConfig;
+  const { key, ttl, cacheAdapter: configAdapter } = cacheConfig;
 
-  const adapter = cacheAdapter || getDefaultCacheAdapter();
+  const adapter = configAdapter || getDefaultCacheAdapter();
+
+  if (!adapter) {
+    throw new Error(
+      'No cache adapter provided. Please either pass a cacheAdapter in config, set a default adapter via configure(), or call setDefaultCacheAdapter() to set a default adapter.'
+    );
+  }
 
   return async (): Promise<T> => {
     const cachedValue = await adapter.get<T>(key);

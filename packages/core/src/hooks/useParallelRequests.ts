@@ -44,6 +44,7 @@ export function useParallelRequests<T = unknown>(
   hookConfig?: ParallelRequestsHookConfig<T>
 ): ParallelRequestsHookResult<T> {
   const requestInstances = configs.map((config) => createRequest(config));
+  const abortController = new AbortController();
 
   const send = async (): Promise<Response<T>[]> => {
     try {
@@ -89,6 +90,7 @@ export function useParallelRequests<T = unknown>(
   };
 
   const cancel = (): void => {
+    abortController.abort();
     requestInstances.forEach((instance) => {
       instance.cancel();
     });

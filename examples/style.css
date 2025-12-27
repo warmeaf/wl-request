@@ -1,5 +1,5 @@
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap");
 
 :root {
   /* Colors - Tech Futuristic + Magazine */
@@ -7,18 +7,18 @@
   --color-bg-darker: #050812;
   --color-surface: #1a1f3a;
   --color-surface-hover: #232946;
-  
+
   --color-accent-cyan: #00f5ff;
   --color-accent-purple: #a855f7;
   --color-accent-pink: #ec4899;
-  
+
   --color-text-primary: #ffffff;
   --color-text-secondary: #a0aec0;
   --color-text-tertiary: #6b7280;
-  
+
   --color-border: rgba(255, 255, 255, 0.1);
   --color-border-hover: rgba(0, 245, 255, 0.5);
-  
+
   --color-success: #00ff9d;
   --color-error: #ff0055;
 
@@ -34,17 +34,17 @@
   --spacing-12: 96px;
 
   /* Typography */
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "IBM Plex Sans", sans-serif;
 
   /* Effects */
   --shadow-glow: 0 0 20px rgba(0, 245, 255, 0.2);
   --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-  
+
   --radius-sm: 4px;
   --radius-md: 12px;
   --radius-lg: 24px;
-  
+
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-medium: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -69,13 +69,13 @@ body {
 
 /* Background Effects */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
+  background:
     radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(0, 245, 255, 0.1) 0%, transparent 40%);
   z-index: -2;
@@ -83,13 +83,14 @@ body::before {
 }
 
 body::after {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
   z-index: -1;
@@ -109,7 +110,9 @@ body.wide {
 }
 
 /* Typography */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: var(--font-mono);
   color: var(--color-text-primary);
   font-weight: 700;
@@ -138,7 +141,7 @@ h2 {
 }
 
 h2::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -194,7 +197,7 @@ p {
 }
 
 .example-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -288,7 +291,7 @@ button {
 }
 
 button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -346,7 +349,7 @@ button#btn-clear:hover {
 }
 
 #output::before {
-  content: 'TERMINAL OUTPUT';
+  content: "TERMINAL OUTPUT";
   position: absolute;
   top: 0;
   right: 0;
@@ -400,13 +403,25 @@ button#btn-clear:hover {
   animation: fadeInUp 0.6s ease-out backwards;
 }
 
-.category:nth-child(1) .example-card { animation-delay: 0.1s; }
-.category:nth-child(2) .example-card { animation-delay: 0.2s; }
-.category:nth-child(3) .example-card { animation-delay: 0.3s; }
+.category:nth-child(1) .example-card {
+  animation-delay: 0.1s;
+}
+.category:nth-child(2) .example-card {
+  animation-delay: 0.2s;
+}
+.category:nth-child(3) .example-card {
+  animation-delay: 0.3s;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
-  h1 { font-size: 2.5rem; }
-  .examples-grid { grid-template-columns: 1fr; }
-  body { padding: var(--spacing-4); }
+  h1 {
+    font-size: 2.5rem;
+  }
+  .examples-grid {
+    grid-template-columns: 1fr;
+  }
+  body {
+    padding: var(--spacing-4);
+  }
 }

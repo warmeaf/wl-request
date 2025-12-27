@@ -72,6 +72,8 @@ export interface RetryConfig {
   condition?: RetryCondition;
   /** 最大延迟时间（毫秒），用于限制指数退避和线性退避的最大延迟 */
   maxDelay?: number;
+  /** 总超时时间（毫秒），用于限制所有重试的总耗时 */
+  totalTimeout?: number;
 }
 
 /**

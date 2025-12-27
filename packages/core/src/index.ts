@@ -22,9 +22,13 @@ export { configure, getGlobalConfig, mergeConfig, resetConfig } from './config';
 
 // ============================================================================
 // 功能模块
-// ============================================================================
 
-export { resetDefaultCacheAdapter, withCache } from './features/cache';
+export {
+  getDefaultCacheAdapter,
+  resetDefaultCacheAdapter,
+  setDefaultCacheAdapter,
+  withCache,
+} from './features/cache';
 export { clearPendingRequests, withIdempotent } from './features/idempotent';
 export { parallelRequests } from './features/parallel';
 export { retryRequest } from './features/retry';

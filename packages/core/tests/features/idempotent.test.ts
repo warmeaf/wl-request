@@ -1,9 +1,11 @@
 // 幂等请求功能测试
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { LocalStorageCacheAdapter } from '../../src/adapters/local-storage-cache-adapter';
 import {
   clearPendingRequests,
   resetDefaultCacheAdapter,
+  setDefaultCacheAdapter,
   withIdempotent,
 } from '../../src/features/idempotent';
 import type { CacheAdapter, Response } from '../../src/interfaces';
@@ -346,6 +348,17 @@ describe('withIdempotent', () => {
             key: vi.fn((index: number) => Object.keys(storage)[index] || null),
           } as Storage;
         }
+
+        // 设置默认缓存适配器
+        setDefaultCacheAdapter(new LocalStorageCacheAdapter());
+      });
+
+      afterEach(() => {
+        // 清理 localStorage 和默认适配器
+        if (global.localStorage?.clear) {
+          global.localStorage.clear();
+        }
+        resetDefaultCacheAdapter();
       });
 
       afterEach(() => {

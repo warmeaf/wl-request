@@ -1,7 +1,12 @@
 // 请求缓存功能测试
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetDefaultCacheAdapter, withCache } from '../../src/features/cache';
+import { LocalStorageCacheAdapter } from '../../src/adapters/local-storage-cache-adapter';
+import {
+  resetDefaultCacheAdapter,
+  setDefaultCacheAdapter,
+  withCache,
+} from '../../src/features/cache';
 import type { CacheAdapter, Response } from '../../src/interfaces';
 import type { CacheConfig } from '../../src/types';
 
@@ -352,13 +357,17 @@ describe('withCache', () => {
           key: vi.fn((index: number) => Object.keys(storage)[index] || null),
         } as Storage;
       }
+
+      // 设置默认缓存适配器
+      setDefaultCacheAdapter(new LocalStorageCacheAdapter());
     });
 
     afterEach(() => {
-      // 清理 localStorage
+      // 清理 localStorage 和默认适配器
       if (global.localStorage?.clear) {
         global.localStorage.clear();
       }
+      resetDefaultCacheAdapter();
     });
 
     it('没有提供 cacheAdapter 时应该自动使用 LocalStorageCacheAdapter', async () => {
@@ -499,6 +508,13 @@ describe('withCache', () => {
 
   describe('resetDefaultCacheAdapter', () => {
     beforeEach(() => {
+      setDefaultCacheAdapter(new LocalStorageCacheAdapter());
+    });
+
+    afterEach(() => {
+      resetDefaultCacheAdapter();
+    });
+    beforeEach(() => {
       // 确保 localStorage 可用
       if (typeof global.localStorage === 'undefined') {
         const storage: Record<string, string> = {};
@@ -568,6 +584,9 @@ describe('withCache', () => {
       global.localStorage.clear();
       resetDefaultCacheAdapter();
 
+      // 重新设置默认适配器
+      setDefaultCacheAdapter(new LocalStorageCacheAdapter());
+
       // 第二次使用新的默认适配器
       const cachedRequest2 = withCache(requestFn2, cacheConfig);
       const result2 = await cachedRequest2();
@@ -601,6 +620,9 @@ describe('withCache', () => {
       // 清空 localStorage 并重置默认适配器
       global.localStorage.clear();
       resetDefaultCacheAdapter();
+
+      // 重新设置默认适配器
+      setDefaultCacheAdapter(new LocalStorageCacheAdapter());
 
       // 第三次调用，应该重新执行请求（因为缓存已被清空）
       const newCachedRequest = withCache(requestFn, cacheConfig);

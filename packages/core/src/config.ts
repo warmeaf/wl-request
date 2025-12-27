@@ -116,6 +116,9 @@ export function mergeConfig<T = unknown>(
       }
 
       if (key === 'onBefore' || key === 'onSuccess' || key === 'onError' || key === 'onFinally') {
+        if (localValue === undefined && globalValue !== undefined) {
+          (result as Record<string, unknown>)[key] = globalValue;
+        }
         continue;
       }
 

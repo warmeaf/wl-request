@@ -109,6 +109,13 @@ export interface CacheAdapter {
    * @returns Promise<boolean> 缓存存在返回 true，否则返回 false
    */
   has(key: string): Promise<boolean>;
+
+  /**
+   * 清理过期的缓存项
+   * 主动清理所有已过期的缓存项，用于定期维护
+   * @returns Promise<void>
+   */
+  cleanup?(): Promise<void>;
 }
 
 /**

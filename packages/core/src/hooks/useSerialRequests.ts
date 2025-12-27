@@ -42,6 +42,7 @@ export function useSerialRequests<T = unknown>(
   hookConfig?: SerialRequestsHookConfig<T>
 ): SerialRequestsHookResult<T> {
   const requestInstances = configs.map((config) => createRequest(config));
+  const abortController = new AbortController();
 
   const send = async (): Promise<Response<T>[]> => {
     try {
@@ -79,6 +80,7 @@ export function useSerialRequests<T = unknown>(
   };
 
   const cancel = (): void => {
+    abortController.abort();
     requestInstances.forEach((instance) => {
       instance.cancel();
     });

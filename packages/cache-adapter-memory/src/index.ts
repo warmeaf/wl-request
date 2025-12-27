@@ -93,4 +93,17 @@ export class MemoryCacheAdapter implements CacheAdapter {
 
     return true;
   }
+
+  /**
+   * 清理过期的缓存项
+   * @returns Promise<void>
+   */
+  async cleanup(): Promise<void> {
+    const now = Date.now();
+    for (const [key, item] of this.cache.entries()) {
+      if (now > item.expiresAt) {
+        this.cache.delete(key);
+      }
+    }
+  }
 }

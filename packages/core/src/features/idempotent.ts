@@ -1,6 +1,5 @@
 // 幂等请求功能
 
-import { LocalStorageCacheAdapter } from '../adapters/local-storage-cache-adapter';
 import type { CacheAdapter } from '../interfaces';
 import type { IdempotentConfig } from '../types';
 
@@ -8,21 +7,24 @@ import type { IdempotentConfig } from '../types';
 const pendingRequests = new Map<string, Promise<unknown>>();
 
 /**
- * 默认 LocalStorageCacheAdapter 实例（延迟加载）
+ * 默认缓存适配器
+ * 必须通过 setDefaultCacheAdapter 设置，否则使用幂等功能时会抛出错误
  */
 let defaultCacheAdapter: CacheAdapter | null = null;
 
 /**
- * 获取默认缓存适配器
- * 使用延迟加载避免在非浏览器环境或未使用缓存时创建
- * @returns LocalStorageCacheAdapter 实例
+ * 设置默认缓存适配器
+ * @param adapter 缓存适配器实例
  */
-function getDefaultCacheAdapter(): CacheAdapter {
-  if (defaultCacheAdapter) {
-    return defaultCacheAdapter;
-  }
+export function setDefaultCacheAdapter(adapter: CacheAdapter): void {
+  defaultCacheAdapter = adapter;
+}
 
-  defaultCacheAdapter = new LocalStorageCacheAdapter();
+/**
+ * 获取默认缓存适配器
+ * @returns 当前默认缓存适配器，未设置时返回 null
+ */
+export function getDefaultCacheAdapter(): CacheAdapter | null {
   return defaultCacheAdapter;
 }
 
@@ -55,7 +57,13 @@ export function withIdempotent<T>(
 ): () => Promise<T> {
   const { key, ttl, cacheAdapter } = idempotentConfig;
 
-  const adapter = cacheAdapter || getDefaultCacheAdapter();
+  const adapter = cacheAdapter || defaultCacheAdapter;
+
+  if (!adapter) {
+    throw new Error(
+      'No cache adapter provided for idempotent. Please either pass a cacheAdapter in the config or call setDefaultCacheAdapter() to set a default adapter.'
+    );
+  }
 
   return (): Promise<T> => {
     const existingPromise = pendingRequests.get(key);
@@ -80,12 +88,6 @@ export function withIdempotent<T>(
     })();
 
     pendingRequests.set(key, requestPromise);
-
-    setTimeout(() => {
-      if (pendingRequests.get(key) === requestPromise) {
-        pendingRequests.delete(key);
-      }
-    }, ttl);
 
     return requestPromise;
   };

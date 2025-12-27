@@ -203,4 +203,38 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
       return false;
     }
   }
+
+  /**
+   * 清理过期的缓存项
+   * @returns Promise<void>
+   */
+  async cleanup(): Promise<void> {
+    try {
+      const now = Date.now();
+      const keysToRemove: string[] = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(this.prefix)) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            try {
+              const item = JSON.parse(stored) as CacheItem;
+              if (typeof item.expiresAt === 'number' && now > item.expiresAt) {
+                keysToRemove.push(key);
+              }
+            } catch {
+              keysToRemove.push(key);
+            }
+          }
+        }
+      }
+
+      keysToRemove.forEach((key) => {
+        localStorage.removeItem(key);
+      });
+    } catch {
+      // 忽略错误
+    }
+  }
 }

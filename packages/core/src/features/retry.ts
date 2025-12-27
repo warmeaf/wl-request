@@ -55,36 +55,78 @@ export async function retryRequest<T>(
   requestFn: () => Promise<T>,
   retryConfig: RetryConfig
 ): Promise<T> {
-  const { count, delay: baseDelay, strategy = 'fixed', condition, maxDelay } = retryConfig;
+  const {
+    count,
+    delay: baseDelay,
+    strategy = 'fixed',
+    condition,
+    maxDelay,
+    totalTimeout,
+  } = retryConfig;
 
   let lastError: RequestError | Error;
   let retryCount = 0;
 
+  const startTime = Date.now();
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = totalTimeout
+    ? new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(`Retry total timeout exceeded (${totalTimeout}ms)`));
+        }, totalTimeout);
+      })
+    : null;
+
   try {
-    return await requestFn();
+    const result = await requestFn();
+    if (timeoutId) clearTimeout(timeoutId);
+    return result;
   } catch (error) {
     lastError = error as RequestError | Error;
   }
 
   while (retryCount < count) {
+    if (timeoutPromise && totalTimeout) {
+      const elapsed = Date.now() - startTime;
+      const remaining = totalTimeout - elapsed;
+      if (remaining <= 0) {
+        if (timeoutId) clearTimeout(timeoutId);
+        throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
+      }
+    }
+
     if (condition) {
       const shouldRetry = condition(lastError as RequestError, retryCount);
       if (!shouldRetry) {
+        if (timeoutId) clearTimeout(timeoutId);
         throw lastError;
       }
     }
 
     const delayTime = calculateDelay(retryCount, baseDelay, strategy, maxDelay);
 
+    if (timeoutPromise && totalTimeout) {
+      const elapsed = Date.now() - startTime;
+      const remaining = totalTimeout - elapsed;
+      if (delayTime > remaining) {
+        if (timeoutId) clearTimeout(timeoutId);
+        throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
+      }
+    }
+
     await delay(delayTime);
 
     try {
-      return await requestFn();
+      const result = await requestFn();
+      if (timeoutId) clearTimeout(timeoutId);
+      return result;
     } catch (error) {
       lastError = error as RequestError | Error;
       retryCount++;
     }
   }
 
+  if (timeoutId) clearTimeout(timeoutId);
   throw lastError;
 }

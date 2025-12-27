@@ -109,7 +109,15 @@ export function createRequest<T = unknown>(config: RequestConfig<T>): RequestIns
         abortController?.signal.addEventListener('abort', abortHandler);
       });
 
-      const response = await Promise.race([requestPromise, cancelPromise]);
+      let response: Response<T>;
+      try {
+        response = await Promise.race([requestPromise, cancelPromise]);
+      } finally {
+        if (abortHandler && abortController) {
+          abortController.signal.removeEventListener('abort', abortHandler);
+          abortHandler = null;
+        }
+      }
 
       if (isCancelled) {
         throw createCancelledError();

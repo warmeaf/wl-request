@@ -297,4 +297,48 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
       return false;
     }
   }
+
+  /**
+   * 清理过期的缓存项
+   * @returns Promise<void>
+   */
+  async cleanup(): Promise<void> {
+    try {
+      const db = await this.getDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      const index = store.index('expiresAt');
+      const now = Date.now();
+      const keysToDelete: string[] = [];
+
+      return new Promise<void>((resolve, reject) => {
+        const request = index.openCursor(IDBKeyRange.upperBound(now));
+
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (cursor) {
+            keysToDelete.push(cursor.key as string);
+            cursor.continue();
+          } else {
+            // 删除所有过期的键
+            const deleteTransaction = db.transaction([this.storeName], 'readwrite');
+            const deleteStore = deleteTransaction.objectStore(this.storeName);
+
+            keysToDelete.forEach((key) => {
+              deleteStore.delete(key);
+            });
+
+            deleteTransaction.oncomplete = () => resolve();
+            deleteTransaction.onerror = () =>
+              reject(new Error(`Failed to cleanup cache: ${deleteTransaction.error?.message}`));
+          }
+        };
+
+        request.onerror = () =>
+          reject(new Error(`Failed to cleanup cache: ${request.error?.message}`));
+      });
+    } catch (_error) {
+      // 忽略错误
+    }
+  }
 }
