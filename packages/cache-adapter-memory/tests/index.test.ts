@@ -308,7 +308,7 @@ describe('MemoryCacheAdapter', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // 执行清理
-      await adapter.cleanup();
+      await adapter.cleanup?.();
 
       // 过期的缓存应该被删除
       expect(await adapter.get('expired-1')).toBeNull();
@@ -329,7 +329,7 @@ describe('MemoryCacheAdapter', () => {
       }
 
       // 执行清理
-      await adapter.cleanup();
+      await adapter.cleanup?.();
 
       // 所有缓存应该都被保留
       for (let i = 0; i < keys.length; i++) {
@@ -344,17 +344,17 @@ describe('MemoryCacheAdapter', () => {
       await adapter.set(key, value, 50);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      await adapter.cleanup();
+      await adapter.cleanup?.();
       expect(await adapter.get(key)).toBeNull();
     });
 
     it('cleanup 不应该抛出错误', async () => {
-      await expect(adapter.cleanup()).resolves.not.toThrow();
+      await expect(adapter.cleanup?.()).resolves.not.toThrow();
     });
 
     it('空缓存执行 cleanup 不应该抛出错误', async () => {
       await adapter.clear();
-      await expect(adapter.cleanup()).resolves.not.toThrow();
+      await expect(adapter.cleanup?.()).resolves.not.toThrow();
     });
   });
 });

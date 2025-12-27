@@ -215,6 +215,56 @@ describe('AxiosAdapter', () => {
         'set-cookie': 'cookie1=value1, cookie2=value2',
       });
     });
+
+    it('应该正确处理 undefined 的响应头', async () => {
+      const mockAxiosResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: undefined,
+        data: {},
+      };
+
+      mockAxiosRequest.mockResolvedValue(mockAxiosResponse);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const response = await adapter.request(config);
+
+      // headers 为 undefined 时应该返回空对象
+      expect(response.headers).toEqual({});
+    });
+
+    it('应该正确处理响应头中的 undefined 值', async () => {
+      // 使用普通对象模拟 Headers，其中某个值可能是 undefined
+      const mockAxiosResponse = {
+        status: 200,
+        statusText: 'OK',
+        // headers 中某些值可能是 undefined
+        headers: {
+          'content-type': 'application/json',
+          // 测试 undefined 值处理
+          'undefined-header': undefined as unknown as string,
+          'normal-header': 'value',
+        },
+        data: {},
+      };
+
+      mockAxiosRequest.mockResolvedValue(mockAxiosResponse);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const response = await adapter.request(config);
+
+      // undefined 的 header 应该被过滤掉
+      expect(response.headers).toEqual({
+        'content-type': 'application/json',
+        'normal-header': 'value',
+      });
+    });
   });
 
   describe('错误处理', () => {
@@ -353,9 +403,9 @@ describe('AxiosAdapter', () => {
       expect((error as { code?: string }).code).toBe('TIMEOUT_ERROR');
     });
 
-    it('应该正确设置网络错误代码', async () => {
+    it('应该正确设置网络错误代码（无 code，包含 timeout 消息）', async () => {
       const mockAxiosError = {
-        message: 'Network Error',
+        message: 'timeout exceeded',
         code: undefined,
         isAxiosError: true,
       };
@@ -368,6 +418,50 @@ describe('AxiosAdapter', () => {
 
       const error = await adapter.request(config).catch((e) => e);
       expect(error).toBeInstanceOf(Error);
+      expect((error as { code?: string }).code).toBe('TIMEOUT_ERROR');
+    });
+
+    it('应该正确处理 axiosError.message 为空且有 response 的情况', async () => {
+      const mockAxiosError = {
+        response: {
+          status: 500,
+          statusText: 'Internal Server Error',
+          headers: {},
+          data: { error: 'Server error' },
+        },
+        message: undefined, // message 为空
+        isAxiosError: true,
+      };
+
+      mockAxiosRequest.mockRejectedValue(mockAxiosError);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      // 应该使用 fallback 消息
+      expect((error as Error).message).toBe('Request failed with status 500');
+    });
+
+    it('应该正确处理 axiosError.message 为空且无 response 的情况', async () => {
+      const mockAxiosError = {
+        message: undefined, // message 为空
+        code: undefined,
+        isAxiosError: true,
+      };
+
+      mockAxiosRequest.mockRejectedValue(mockAxiosError);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      // 应该使用默认消息
+      expect((error as Error).message).toBe('Request failed');
       expect((error as { code?: string }).code).toBe('NETWORK_ERROR');
     });
   });

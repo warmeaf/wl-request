@@ -57,6 +57,18 @@ describe('createRequest', () => {
       async clear(): Promise<void> {
         cache.clear();
       },
+
+      async has(key: string): Promise<boolean> {
+        const item = cache.get(key);
+        if (!item) {
+          return false;
+        }
+        if (Date.now() > item.expiresAt) {
+          cache.delete(key);
+          return false;
+        }
+        return true;
+      },
     };
 
     // 设置默认适配器

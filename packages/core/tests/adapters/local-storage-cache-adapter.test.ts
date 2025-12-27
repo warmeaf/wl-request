@@ -268,6 +268,15 @@ describe('LocalStorageCacheAdapter', () => {
       const result = await adapter.has('old-key');
       expect(result).toBe(false);
     });
+
+    it('has 方法中 getItem 抛出非 QuotaExceededError 时应该返回 false', async () => {
+      global.localStorage.getItem = vi.fn(() => {
+        throw new Error('Random storage error');
+      });
+
+      const result = await adapter.has('test-key');
+      expect(result).toBe(false);
+    });
   });
 
   describe('边界情况', () => {
@@ -318,6 +327,79 @@ describe('LocalStorageCacheAdapter', () => {
       const result = await adapter.get('old-key');
       // 应该能够处理，返回 null 或值（取决于实现）
       expect(result).toBeNull();
+    });
+  });
+
+  describe('cleanup 方法', () => {
+    it('应该清理所有过期的缓存项', async () => {
+      await adapter.set('expired-1', 'value1', 50);
+      await adapter.set('expired-2', 'value2', 50);
+      await adapter.set('valid-1', 'value3', 10000);
+      await adapter.set('valid-2', 'value4', 10000);
+
+      // 等待部分缓存过期
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await adapter.cleanup();
+
+      // 过期的缓存应该被删除
+      expect(await adapter.get('expired-1')).toBeNull();
+      expect(await adapter.get('expired-2')).toBeNull();
+
+      // 未过期的缓存应该保留
+      expect(await adapter.get('valid-1')).toBe('value3');
+      expect(await adapter.get('valid-2')).toBe('value4');
+    });
+
+    it('应该保留所有未过期的缓存项', async () => {
+      const keys = ['keep-1', 'keep-2', 'keep-3'];
+      const values = ['value1', 'value2', 'value3'];
+
+      // 设置多个长期有效的缓存
+      for (let i = 0; i < keys.length; i++) {
+        await adapter.set(keys[i], values[i], 10000);
+      }
+
+      await adapter.cleanup();
+
+      // 所有缓存应该都被保留
+      for (let i = 0; i < keys.length; i++) {
+        expect(await adapter.get<string>(keys[i])).toBe(values[i]);
+      }
+    });
+
+    it('cleanup 中遇到损坏的 JSON 应该跳过该项目', async () => {
+      await adapter.set('valid-1', 'value1', 10000);
+      // 手动添加损坏的缓存数据
+      global.localStorage.setItem('wl-request:corrupted', 'invalid json');
+
+      // 不应该抛出错误
+      await expect(adapter.cleanup()).resolves.not.toThrow();
+
+      // 有效的缓存应该保留
+      expect(await adapter.get('valid-1')).toBe('value1');
+    });
+
+    it('cleanup 中遇到 localStorage 错误应该静默处理', async () => {
+      await adapter.set('valid-1', 'value1', 10000);
+
+      // 模拟 localStorage.length 抛出错误
+      const originalLength = Object.getOwnPropertyDescriptor(localStorage, 'length');
+      Object.defineProperty(localStorage, 'length', {
+        get: () => {
+          throw new Error('Storage error');
+        },
+      });
+
+      try {
+        // 不应该抛出错误
+        await expect(adapter.cleanup()).resolves.not.toThrow();
+      } finally {
+        // 恢复原始属性
+        if (originalLength) {
+          Object.defineProperty(localStorage, 'length', originalLength);
+        }
+      }
     });
   });
 });

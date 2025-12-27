@@ -2,7 +2,7 @@
 
 import 'fake-indexeddb/auto';
 import type { CacheAdapter, Response } from '@wl-request/core';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IndexedDBCacheAdapter } from '../src/index';
 
 describe('IndexedDBCacheAdapter', () => {
@@ -40,6 +40,32 @@ describe('IndexedDBCacheAdapter', () => {
 
       await adapter1.clear();
       await adapter2.clear();
+    });
+
+    it('第二次初始化时应该使用已存在的数据库', async () => {
+      const adapter1 = new IndexedDBCacheAdapter('reused-db', STORE_NAME);
+      await adapter1.set('key1', 'value1');
+
+      // 创建同名适配器，应该复用已有数据库
+      const adapter2 = new IndexedDBCacheAdapter('reused-db', STORE_NAME);
+
+      // 数据应该可访问
+      expect(await adapter2.get<string>('key1')).toBe('value1');
+
+      await adapter1.clear();
+    });
+
+    it('应该能够处理对象存储已存在的情况', async () => {
+      const adapter1 = new IndexedDBCacheAdapter('existing-store-db', STORE_NAME);
+      await adapter1.set('key1', 'value1');
+
+      // 创建同名对象存储的适配器
+      const adapter2 = new IndexedDBCacheAdapter('existing-store-db', STORE_NAME);
+
+      // 应该成功获取之前存储的数据
+      expect(await adapter2.get<string>('key1')).toBe('value1');
+
+      await adapter1.clear();
     });
   });
 
@@ -140,6 +166,16 @@ describe('IndexedDBCacheAdapter', () => {
       // 立即获取应该返回 null
       expect(await adapter.get<string>(key)).toBeNull();
     });
+
+    it('TTL 为负数的缓存项应该立即过期', async () => {
+      const key = 'negative-ttl-key';
+      const value = 'negative ttl value';
+
+      await adapter.set(key, value, -100);
+
+      // 立即获取应该返回 null
+      expect(await adapter.get<string>(key)).toBeNull();
+    });
   });
 
   describe('缓存删除', () => {
@@ -234,6 +270,31 @@ describe('IndexedDBCacheAdapter', () => {
         global.indexedDB = originalIDB;
       }
     });
+
+    it('IndexedDB 打开失败时应该抛出错误', async () => {
+      // 模拟数据库打开失败
+      const originalIDB = global.indexedDB;
+      const mockIDB = {
+        open: vi.fn(() => {
+          const request = {
+            onerror: null as (() => void) | null,
+            onsuccess: null as (() => void) | null,
+            error: { message: 'Database open failed' },
+          };
+          // 模拟异步触发 onerror
+          setTimeout(() => request.onerror?.(), 0);
+          return request;
+        }),
+      };
+      global.indexedDB = mockIDB as unknown as IDBFactory;
+
+      try {
+        const testAdapter = new IndexedDBCacheAdapter('failing-db', 'test-store');
+        await expect(testAdapter.set('key', 'value')).rejects.toThrow('Database open failed');
+      } finally {
+        global.indexedDB = originalIDB;
+      }
+    });
   });
 
   describe('并发操作', () => {
@@ -315,6 +376,31 @@ describe('IndexedDBCacheAdapter', () => {
       const cached = await adapter.get<Response<string>>('response-key-2');
       expect(cached).toEqual(response);
     });
+
+    it('应该能够存储普通对象（不含 Response 字段）', async () => {
+      const regularObject = {
+        name: 'test',
+        count: 42,
+        nested: { value: true },
+      };
+
+      await adapter.set('regular-object', regularObject);
+      const cached = await adapter.get<typeof regularObject>('regular-object');
+      expect(cached).toEqual(regularObject);
+    });
+
+    it('应该能够存储包含部分 Response 字段的对象', async () => {
+      // 包含部分字段但不完整，不应该触发特殊处理
+      const partialResponse = {
+        status: 200,
+        data: 'test',
+        // 缺少 statusText 和 headers
+      };
+
+      await adapter.set('partial-response', partialResponse);
+      const cached = await adapter.get<typeof partialResponse>('partial-response');
+      expect(cached).toEqual(partialResponse);
+    });
   });
 
   describe('has 方法', () => {
@@ -373,7 +459,7 @@ describe('IndexedDBCacheAdapter', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // 执行清理
-      await adapter.cleanup();
+      await adapter.cleanup?.();
 
       // 过期的缓存应该被删除
       expect(await adapter.get('expired-1')).toBeNull();
@@ -394,7 +480,7 @@ describe('IndexedDBCacheAdapter', () => {
       }
 
       // 执行清理
-      await adapter.cleanup();
+      await adapter.cleanup?.();
 
       // 所有缓存应该都被保留
       for (let i = 0; i < keys.length; i++) {
@@ -409,17 +495,17 @@ describe('IndexedDBCacheAdapter', () => {
       await adapter.set(key, value, 50);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      await adapter.cleanup();
+      await adapter.cleanup?.();
       expect(await adapter.get(key)).toBeNull();
     });
 
     it('cleanup 不应该抛出错误', async () => {
-      await expect(adapter.cleanup()).resolves.not.toThrow();
+      await expect(adapter.cleanup?.()).resolves.not.toThrow();
     });
 
     it('空缓存执行 cleanup 不应该抛出错误', async () => {
       await adapter.clear();
-      await expect(adapter.cleanup()).resolves.not.toThrow();
+      await expect(adapter.cleanup?.()).resolves.not.toThrow();
     });
   });
 });

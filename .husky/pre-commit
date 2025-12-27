@@ -1,11 +1,25 @@
 #!/usr/bin/env sh
 
-# Run lint-staged using pnpm
+# Run lint-staged and coverage check using pnpm
 # If pnpm is not in PATH, try using npm exec (works if pnpm is installed via npm)
 if command -v pnpm >/dev/null 2>&1; then
+  # Run coverage check first
+  echo "Running test coverage check..."
+  pnpm test:coverage || {
+    echo "❌ Coverage check failed. Please add more tests."
+    exit 1
+  }
+
+  # Run lint-staged
   exec pnpm lint-staged
 else
   # Fallback: use npm exec to run pnpm (works if pnpm is installed)
+  echo "Running test coverage check..."
+  npm exec -- pnpm test:coverage || {
+    echo "❌ Coverage check failed. Please add more tests."
+    exit 1
+  }
+
   exec npm exec -- pnpm lint-staged
 fi
 

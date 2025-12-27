@@ -5,7 +5,9 @@
       "Bash(tree:*)",
       "Bash(pnpm test:coverage:*)",
       "Bash(pnpm test:*)",
-      "Bash(pnpm check:*)"
+      "Bash(pnpm check:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm typecheck)"
     ]
   }
 }
