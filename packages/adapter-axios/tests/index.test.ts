@@ -292,6 +292,84 @@ describe('AxiosAdapter', () => {
 
       await expect(adapter.request(config)).rejects.toThrow();
     });
+
+    it('应该处理非 Axios 错误（普通 Error）', async () => {
+      const regularError = new Error('Something went wrong');
+
+      mockAxiosRequest.mockRejectedValue(regularError);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toBe('Something went wrong');
+      expect((error as { code?: string }).code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('应该处理非 Axios 错误（字符串）', async () => {
+      mockAxiosRequest.mockRejectedValue('String error');
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toBe('Request failed');
+      expect((error as { code?: string }).code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('应该处理非 Axios 错误（其他对象）', async () => {
+      mockAxiosRequest.mockRejectedValue({ custom: 'error' });
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toBe('Request failed');
+      expect((error as { code?: string }).code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('应该正确设置超时错误代码', async () => {
+      const mockAxiosError = {
+        message: 'timeout exceeded',
+        code: undefined,
+        isAxiosError: true,
+      };
+
+      mockAxiosRequest.mockRejectedValue(mockAxiosError);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+        timeout: 5000,
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as { code?: string }).code).toBe('TIMEOUT_ERROR');
+    });
+
+    it('应该正确设置网络错误代码', async () => {
+      const mockAxiosError = {
+        message: 'Network Error',
+        code: undefined,
+        isAxiosError: true,
+      };
+
+      mockAxiosRequest.mockRejectedValue(mockAxiosError);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as { code?: string }).code).toBe('NETWORK_ERROR');
+    });
   });
 
   describe('原始响应对象', () => {

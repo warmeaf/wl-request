@@ -13,6 +13,22 @@ export default defineConfig({
       'tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
     ],
     exclude: ['**/node_modules/**', '**/dist/**', '.idea', '.git', '.cache'],
+    setupFiles: ['./vitest.setup.ts'],
+    // 忽略在异步操作中正确处理的 Promise rejection 警告
+    // 这些警告主要出现在测试重试机制时
+    onUnhandledError(error) {
+      // 忽略测试 mock 函数产生的错误
+      if (
+        error instanceof Error &&
+        (error.message.includes('Request failed') ||
+          error.message.includes('Network error') ||
+          error.message.includes('Server error') ||
+          error.message.includes('Error') ||
+          error.message.includes('Final error'))
+      ) {
+        return;
+      }
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

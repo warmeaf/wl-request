@@ -487,6 +487,76 @@ describe('FetchAdapter', () => {
 
       await expect(adapter.request(config)).rejects.toThrow();
     });
+
+    it('应该处理请求超时导致的 AbortError', async () => {
+      // 创建一个模拟的 AbortError
+      class MockAbortError extends Error {
+        name = 'AbortError';
+        constructor(message: string) {
+          super(message);
+          this.name = 'AbortError';
+        }
+      }
+
+      const abortError = new MockAbortError('The operation was aborted');
+
+      global.fetch = vi.fn().mockRejectedValue(abortError);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+        timeout: 100,
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      // AbortError 应该被转换为 "Request timeout" 消息
+      expect((error as Error).message).toBe('Request timeout');
+      expect((error as { code?: string }).code).toBe('NETWORK_ERROR');
+    });
+
+    it('应该处理非文本/非 JSON 内容的响应', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/octet-stream' }),
+        json: vi.fn().mockRejectedValue(new Error('Unexpected token')),
+        text: vi.fn().mockResolvedValue('binary data content'),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse as unknown as Response);
+
+      const config: RequestConfig = {
+        url: '/api/binary',
+      };
+
+      const response = await adapter.request(config);
+
+      // 应该返回 text 解析的内容
+      expect(response.data).toBe('binary data content');
+    });
+
+    it('应该处理既不是 JSON 也不是文本的响应', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'image/png' }),
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
+        text: vi.fn().mockResolvedValue('<image binary data>'),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse as unknown as Response);
+
+      const config: RequestConfig = {
+        url: '/api/image',
+      };
+
+      const response = await adapter.request(config);
+
+      // 应该返回 text 解析的内容作为后备
+      expect(response.data).toBe('<image binary data>');
+    });
   });
 
   describe('响应头解析', () => {

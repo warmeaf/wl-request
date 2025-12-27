@@ -316,4 +316,110 @@ describe('IndexedDBCacheAdapter', () => {
       expect(cached).toEqual(response);
     });
   });
+
+  describe('has 方法', () => {
+    it('存在的缓存键应该返回 true', async () => {
+      const key = 'has-key';
+      const value = 'has value';
+
+      await adapter.set(key, value);
+      expect(await adapter.has(key)).toBe(true);
+    });
+
+    it('不存在的缓存键应该返回 false', async () => {
+      expect(await adapter.has('non-existent-key')).toBe(false);
+    });
+
+    it('过期的缓存键应该返回 false 并被删除', async () => {
+      const key = 'expired-has-key';
+      const value = 'expired value';
+
+      // 设置缓存，TTL 为 50ms
+      await adapter.set(key, value, 50);
+
+      // 立即检查应该返回 true
+      expect(await adapter.has(key)).toBe(true);
+
+      // 等待 TTL 过期
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // 过期后应该返回 false
+      expect(await adapter.has(key)).toBe(false);
+
+      // 并且缓存应该已被删除
+      expect(await adapter.get(key)).toBeNull();
+    });
+
+    it('has 方法不应该影响缓存值', async () => {
+      const key = 'has-preserve-key';
+      const value = { preserved: true };
+
+      await adapter.set(key, value);
+      await adapter.has(key);
+
+      expect(await adapter.get(key)).toEqual(value);
+    });
+  });
+
+  describe('cleanup 方法', () => {
+    it('应该清理所有过期的缓存项', async () => {
+      // 设置多个缓存项，其中一些会过期
+      await adapter.set('expired-1', 'value1', 50);
+      await adapter.set('expired-2', 'value2', 50);
+      await adapter.set('valid-1', 'value3', 5000);
+      await adapter.set('valid-2', 'value4', 5000);
+
+      // 等待部分缓存过期
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // 执行清理
+      await adapter.cleanup();
+
+      // 过期的缓存应该被删除
+      expect(await adapter.get('expired-1')).toBeNull();
+      expect(await adapter.get('expired-2')).toBeNull();
+
+      // 未过期的缓存应该保留
+      expect(await adapter.get('valid-1')).toBe('value3');
+      expect(await adapter.get('valid-2')).toBe('value4');
+    });
+
+    it('应该保留所有未过期的缓存项', async () => {
+      const keys = ['keep-1', 'keep-2', 'keep-3'];
+      const values = ['value1', 'value2', 'value3'];
+
+      // 设置多个长期有效的缓存
+      for (let i = 0; i < keys.length; i++) {
+        await adapter.set(keys[i], values[i], 10000);
+      }
+
+      // 执行清理
+      await adapter.cleanup();
+
+      // 所有缓存应该都被保留
+      for (let i = 0; i < keys.length; i++) {
+        expect(await adapter.get<string>(keys[i])).toBe(values[i]);
+      }
+    });
+
+    it('清理后不应该能够获取到被删除的缓存', async () => {
+      const key = 'cleanup-delete-key';
+      const value = 'cleanup value';
+
+      await adapter.set(key, value, 50);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await adapter.cleanup();
+      expect(await adapter.get(key)).toBeNull();
+    });
+
+    it('cleanup 不应该抛出错误', async () => {
+      await expect(adapter.cleanup()).resolves.not.toThrow();
+    });
+
+    it('空缓存执行 cleanup 不应该抛出错误', async () => {
+      await adapter.clear();
+      await expect(adapter.cleanup()).resolves.not.toThrow();
+    });
+  });
 });
