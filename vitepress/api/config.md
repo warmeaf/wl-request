@@ -127,8 +127,8 @@ if (adapter) {
 
 **优先级说明**：
 此函数返回的适配器可能来自：
-1. `setDefaultCacheAdapter()` 设置的值
-2. `configure()` 中的 `cacheAdapter` 配置
+1. `configure()` 中的 `cacheAdapter` 配置（全局配置）
+2. `setDefaultCacheAdapter()` 设置的值（模块级默认值）
 3. 如果两者都未设置，则返回 null
 
 ## mergeConfig

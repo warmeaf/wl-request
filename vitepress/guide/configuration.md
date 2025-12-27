@@ -107,7 +107,7 @@ setDefaultCacheAdapter(new LocalStorageCacheAdapter())
 
 **注意**：如果未设置缓存适配器，使用缓存或幂等功能时会抛出错误。
 
-### timeout
+### 请求钩子
 
 可以配置全局或实例级别的请求钩子：
 
