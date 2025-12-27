@@ -1,45 +1,17 @@
 // 幂等请求功能
 
-import { getGlobalConfig } from '../config';
-import type { CacheAdapter } from '../interfaces';
+import {
+  getDefaultCacheAdapter,
+  resetDefaultCacheAdapter,
+  setDefaultCacheAdapter,
+} from '../adapters';
 import type { IdempotentConfig } from '../types';
 
 // 存储正在进行的请求 Promise（每个 key 对应一个 Promise）
 const pendingRequests = new Map<string, Promise<unknown>>();
 
-/**
- * 默认缓存适配器
- * 必须通过 setDefaultCacheAdapter 设置，否则使用幂等功能时会抛出错误
- */
-let defaultCacheAdapter: CacheAdapter | null = null;
-
-/**
- * 设置默认缓存适配器
- * @param adapter 缓存适配器实例
- */
-export function setDefaultCacheAdapter(adapter: CacheAdapter): void {
-  defaultCacheAdapter = adapter;
-}
-
-/**
- * 获取默认缓存适配器
- * @returns 当前默认缓存适配器，未设置时返回 null
- */
-export function getDefaultCacheAdapter(): CacheAdapter | null {
-  const globalConfig = getGlobalConfig();
-  if (globalConfig.cacheAdapter) {
-    return globalConfig.cacheAdapter;
-  }
-  return defaultCacheAdapter;
-}
-
-/**
- * 重置默认缓存适配器
- * 用于测试或需要切换默认适配器的场景
- */
-export function resetDefaultCacheAdapter(): void {
-  defaultCacheAdapter = null;
-}
+// 重新导出缓存适配器注册表函数，保持向后兼容
+export { setDefaultCacheAdapter, resetDefaultCacheAdapter, getDefaultCacheAdapter };
 
 /**
  * 清除所有正在进行的请求记录

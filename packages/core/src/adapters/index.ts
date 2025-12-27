@@ -2,6 +2,15 @@
 
 import type { RequestAdapter } from '../interfaces';
 
+// 导出缓存适配器注册表
+export {
+  getDefaultCacheAdapter,
+  resetDefaultCacheAdapter,
+  setDefaultCacheAdapter,
+} from './cache-registry';
+
+import { resetDefaultCacheAdapter as resetCacheAdapter } from './cache-registry';
+
 /**
  * 适配器注册表
  */
@@ -25,6 +34,7 @@ export function resetAdapters(): void {
   adapterRegistry.clear();
   defaultAdapter = null;
   fetchAdapterInstance = null;
+  resetCacheAdapter();
 }
 
 /**
