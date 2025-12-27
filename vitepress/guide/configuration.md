@@ -157,6 +157,10 @@ handleLoad()
 onBefore: (config: RequestConfig<T>) => RequestConfig<T> | Promise<RequestConfig<T> | undefined> | undefined
 ```
 
+**返回值**：
+- 返回新配置对象：使用新配置发送请求
+- 返回 `undefined` 或 `null`：使用原配置发送请求
+
 #### onSuccess
 
 请求成功时执行。
