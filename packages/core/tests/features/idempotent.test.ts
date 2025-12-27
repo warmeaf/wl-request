@@ -2,6 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LocalStorageCacheAdapter } from '../../src/adapters/local-storage-cache-adapter';
+import { configure, resetConfig } from '../../src/config';
 import {
   clearPendingRequests,
   resetDefaultCacheAdapter,
@@ -514,27 +515,25 @@ describe('withIdempotent', () => {
           } as Storage;
         }
 
-        // 设置默认缓存适配器
+        // 重置配置
+        resetConfig();
+        resetDefaultCacheAdapter();
+        global.localStorage?.clear();
+      });
+
+      afterEach(() => {
+        // 清理 localStorage 和默认适配器
+        if (global.localStorage?.clear) {
+          global.localStorage.clear();
+        }
+        resetConfig();
+        resetDefaultCacheAdapter();
+      });
+
+      it('没有提供缓存适配器时应该使用模块级默认缓存适配器', async () => {
+        // 设置模块级默认缓存适配器
         setDefaultCacheAdapter(new LocalStorageCacheAdapter());
-      });
 
-      afterEach(() => {
-        // 清理 localStorage 和默认适配器
-        if (global.localStorage?.clear) {
-          global.localStorage.clear();
-        }
-        resetDefaultCacheAdapter();
-      });
-
-      afterEach(() => {
-        // 清理 localStorage 和默认适配器
-        if (global.localStorage?.clear) {
-          global.localStorage.clear();
-        }
-        resetDefaultCacheAdapter();
-      });
-
-      it('没有提供缓存适配器时应该使用默认缓存适配器', async () => {
         const response: Response<string> = {
           status: 200,
           statusText: 'OK',
@@ -575,7 +574,77 @@ describe('withIdempotent', () => {
         }
       });
 
-      it('默认缓存适配器应该支持 TTL 过期', async () => {
+      it('config 中的 cacheAdapter 应该覆盖全局配置的 cacheAdapter', async () => {
+        // 设置全局配置使用 localStorage 适配器
+        configure({ cacheAdapter: new LocalStorageCacheAdapter() });
+
+        // 创建一个内存适配器来跟踪调用
+        const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
+        const memoryAdapter: CacheAdapter = {
+          async get<T>(key: string): Promise<T | null> {
+            const item = memoryCache.get(key);
+            if (!item) return null;
+            if (Date.now() > item.expiresAt) {
+              memoryCache.delete(key);
+              return null;
+            }
+            return item.value as T;
+          },
+          async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+            const expiresAt = ttl ? Date.now() + ttl : Number.MAX_SAFE_INTEGER;
+            memoryCache.set(key, { value, expiresAt });
+          },
+          async delete(key: string): Promise<void> {
+            memoryCache.delete(key);
+          },
+          async clear(): Promise<void> {
+            memoryCache.clear();
+          },
+          async has(key: string): Promise<boolean> {
+            const item = memoryCache.get(key);
+            if (!item) return false;
+            if (Date.now() > item.expiresAt) {
+              memoryCache.delete(key);
+              return false;
+            }
+            return true;
+          },
+        };
+
+        const response: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'result from memory adapter',
+        };
+
+        const requestFn = vi.fn().mockResolvedValue(response);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'override-key',
+          ttl: 1000,
+          cacheAdapter: memoryAdapter, // 覆盖全局配置
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 第一次调用
+        const result1 = await idempotentRequest();
+        expect(result1).toEqual(response);
+        expect(requestFn).toHaveBeenCalledTimes(1);
+
+        // 验证内存适配器中存储了缓存
+        expect(memoryCache.has('override-key')).toBe(true);
+
+        // 第二次调用应该从缓存读取
+        const result2 = await idempotentRequest();
+        expect(result2).toEqual(response);
+        expect(requestFn).toHaveBeenCalledTimes(1); // 不应该再次调用
+      });
+
+      it('模块级默认缓存适配器应该支持 TTL 过期', async () => {
+        // 设置模块级默认缓存适配器
+        setDefaultCacheAdapter(new LocalStorageCacheAdapter());
+
         const response1: Response<string> = {
           status: 200,
           statusText: 'OK',
@@ -611,6 +680,80 @@ describe('withIdempotent', () => {
         const result2 = await idempotentRequest();
         expect(result2).toEqual(response2);
         expect(requestFn).toHaveBeenCalledTimes(2);
+      });
+
+      it('config 中的 cacheAdapter 应该覆盖全局配置的 cacheAdapter', async () => {
+        // 清理之前的配置
+        resetConfig();
+        resetDefaultCacheAdapter();
+        if (global.localStorage?.clear) {
+          global.localStorage.clear();
+        }
+
+        // 创建一个内存适配器来跟踪调用
+        const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
+        const memoryAdapter: CacheAdapter = {
+          async get<T>(key: string): Promise<T | null> {
+            const item = memoryCache.get(key);
+            if (!item) return null;
+            if (Date.now() > item.expiresAt) {
+              memoryCache.delete(key);
+              return null;
+            }
+            return item.value as T;
+          },
+          async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+            const expiresAt = ttl ? Date.now() + ttl : Number.MAX_SAFE_INTEGER;
+            memoryCache.set(key, { value, expiresAt });
+          },
+          async delete(key: string): Promise<void> {
+            memoryCache.delete(key);
+          },
+          async clear(): Promise<void> {
+            memoryCache.clear();
+          },
+          async has(key: string): Promise<boolean> {
+            const item = memoryCache.get(key);
+            if (!item) return false;
+            if (Date.now() > item.expiresAt) {
+              memoryCache.delete(key);
+              return false;
+            }
+            return true;
+          },
+        };
+
+        // 设置全局配置使用 localStorage 适配器
+        configure({ cacheAdapter: new LocalStorageCacheAdapter() });
+
+        const response: Response<string> = {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: 'result from memory adapter',
+        };
+
+        const requestFn = vi.fn().mockResolvedValue(response);
+        const idempotentConfig: IdempotentConfig = {
+          key: 'override-key',
+          ttl: 1000,
+          cacheAdapter: memoryAdapter, // 覆盖全局配置
+        };
+
+        const idempotentRequest = withIdempotent(requestFn, idempotentConfig);
+
+        // 第一次调用
+        const result1 = await idempotentRequest();
+        expect(result1).toEqual(response);
+        expect(requestFn).toHaveBeenCalledTimes(1);
+
+        // 验证内存适配器中存储了缓存
+        expect(memoryCache.has('override-key')).toBe(true);
+
+        // 第二次调用应该从缓存读取
+        const result2 = await idempotentRequest();
+        expect(result2).toEqual(response);
+        expect(requestFn).toHaveBeenCalledTimes(1); // 不应该再次调用
       });
     });
 

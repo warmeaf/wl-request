@@ -1,5 +1,6 @@
 // 幂等请求功能
 
+import { getGlobalConfig } from '../config';
 import type { CacheAdapter } from '../interfaces';
 import type { IdempotentConfig } from '../types';
 
@@ -25,6 +26,10 @@ export function setDefaultCacheAdapter(adapter: CacheAdapter): void {
  * @returns 当前默认缓存适配器，未设置时返回 null
  */
 export function getDefaultCacheAdapter(): CacheAdapter | null {
+  const globalConfig = getGlobalConfig();
+  if (globalConfig.cacheAdapter) {
+    return globalConfig.cacheAdapter;
+  }
   return defaultCacheAdapter;
 }
 
