@@ -219,6 +219,106 @@ describe('retryRequest', () => {
     });
   });
 
+  describe('重试计数逻辑', () => {
+    it('retryCount 应反映实际发起的重试次数', async () => {
+      const retryCounts: number[] = [];
+
+      const requestFn = vi.fn().mockRejectedValue(new Error('Request failed'));
+
+      const retryConfig: RetryConfig = {
+        count: 3,
+        delay: 100,
+        condition: (_error: RequestError, retryCount: number) => {
+          retryCounts.push(retryCount);
+          // 始终允许重试
+          return true;
+        },
+      };
+
+      const resultPromise = retryRequest(requestFn, retryConfig);
+
+      // 初始请求立即执行
+      expect(requestFn).toHaveBeenCalledTimes(1);
+
+      // 完成所有重试
+      await vi.advanceTimersByTimeAsync(300);
+      await vi.runAllTimersAsync();
+
+      await expect(resultPromise).rejects.toThrow();
+
+      // retryCount 在每次 condition 检查时应该是 0, 1, 2
+      // 对应：第1次重试前、第2次重试前、第3次重试前
+      expect(retryCounts).toEqual([0, 1, 2]);
+      // 总共调用 4 次（初始 + 3次重试）
+      expect(requestFn).toHaveBeenCalledTimes(4);
+    });
+
+    it('condition 返回 false 时应使用正确的 retryCount 值', async () => {
+      const retryCounts: number[] = [];
+
+      const requestFn = vi.fn().mockRejectedValue(new Error('Request failed'));
+
+      const retryConfig: RetryConfig = {
+        count: 2,
+        delay: 100,
+        condition: (_error: RequestError, retryCount: number) => {
+          retryCounts.push(retryCount);
+          // 始终允许重试
+          return true;
+        },
+      };
+
+      const resultPromise = retryRequest(requestFn, retryConfig);
+
+      // 初始请求
+      expect(requestFn).toHaveBeenCalledTimes(1);
+
+      // 完成重试：2次延迟，每次100ms
+      await vi.advanceTimersByTimeAsync(200);
+      await vi.runAllTimersAsync();
+
+      await expect(resultPromise).rejects.toThrow();
+
+      // condition 应被调用 2 次，对应两次重试前的检查
+      // retryCount 值为 0（第一次重试前）、1（第二次重试前）
+      expect(retryCounts).toEqual([0, 1]);
+      // 总共调用 3 次（初始 + 2次重试）
+      expect(requestFn).toHaveBeenCalledTimes(3);
+    });
+
+    it('第一次重试时 retryCount 应为 0', async () => {
+      let firstRetryCount = -1;
+
+      const requestFn = vi.fn().mockRejectedValue(new Error('Request failed'));
+
+      const retryConfig: RetryConfig = {
+        count: 3,
+        delay: 100,
+        condition: (_error: RequestError, retryCount: number) => {
+          if (firstRetryCount === -1) {
+            firstRetryCount = retryCount;
+          }
+          return true;
+        },
+      };
+
+      const resultPromise = retryRequest(requestFn, retryConfig);
+
+      // 初始请求
+      expect(requestFn).toHaveBeenCalledTimes(1);
+
+      // 推进到第一次重试
+      await vi.advanceTimersByTimeAsync(100);
+      expect(requestFn).toHaveBeenCalledTimes(2);
+
+      // 第一次重试前 condition 被调用时，retryCount 应为 0
+      expect(firstRetryCount).toBe(0);
+
+      await vi.runAllTimersAsync();
+      await expect(resultPromise).rejects.toThrow();
+    });
+  });
+
   describe('自定义重试条件', () => {
     it('应该根据自定义条件决定是否重试', async () => {
       const error1: RequestError = new Error('Network error') as RequestError;

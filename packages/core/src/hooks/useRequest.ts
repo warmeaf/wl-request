@@ -19,7 +19,8 @@ export function createRequestHook<T = unknown>(config: RequestConfig<T>): Reques
  * 它是一个简单的工厂函数，用于创建请求实例
  * @param config 请求配置
  * @returns 请求实例，包含 send 和 cancel 方法
- * @deprecated 建议使用 createRequestHook 以避免与 React Hook 命名约定混淆
+ * @note 推荐使用 `createRequestHook` 以避免与 React Hook 命名约定混淆
+ *       但 `useRequest` 保持导出以确保向后兼容性
  */
 export function useRequest<T = unknown>(config: RequestConfig<T>): RequestInstance<T> {
   return createRequest(config);

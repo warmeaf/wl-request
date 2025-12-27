@@ -46,6 +46,15 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
+ * 清理 timeoutId 的辅助函数
+ */
+function clearTimeoutIfExists(timeoutId: ReturnType<typeof setTimeout> | undefined): void {
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
  * 使用重试机制执行请求函数
  * @param requestFn 请求函数，返回 Promise
  * @param retryConfig 重试配置
@@ -81,37 +90,40 @@ export async function retryRequest<T>(
 
   try {
     const result = await requestFn();
-    if (timeoutId) clearTimeout(timeoutId);
+    clearTimeoutIfExists(timeoutId);
     return result;
   } catch (error) {
     lastError = error as RequestError | Error;
   }
 
   while (retryCount < count) {
+    // 先增加计数，确保 condition 和 delay 计算使用正确的值
+    retryCount++;
+
     if (timeoutRejector && totalTimeout) {
       const elapsed = Date.now() - startTime;
       const remaining = totalTimeout - elapsed;
       if (remaining <= 0) {
-        if (timeoutId) clearTimeout(timeoutId);
+        clearTimeoutIfExists(timeoutId);
         throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
       }
     }
 
     if (condition) {
-      const shouldRetry = condition(lastError as RequestError, retryCount);
+      const shouldRetry = condition(lastError as RequestError, retryCount - 1);
       if (!shouldRetry) {
-        if (timeoutId) clearTimeout(timeoutId);
+        clearTimeoutIfExists(timeoutId);
         throw lastError;
       }
     }
 
-    const delayTime = calculateDelay(retryCount, baseDelay, strategy, maxDelay);
+    const delayTime = calculateDelay(retryCount - 1, baseDelay, strategy, maxDelay);
 
     if (timeoutRejector && totalTimeout) {
       const elapsed = Date.now() - startTime;
       const remaining = totalTimeout - elapsed;
       if (delayTime > remaining) {
-        if (timeoutId) clearTimeout(timeoutId);
+        clearTimeoutIfExists(timeoutId);
         throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
       }
     }
@@ -120,14 +132,13 @@ export async function retryRequest<T>(
 
     try {
       const result = await requestFn();
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeoutIfExists(timeoutId);
       return result;
     } catch (error) {
       lastError = error as RequestError | Error;
-      retryCount++;
     }
   }
 
-  if (timeoutId) clearTimeout(timeoutId);
+  clearTimeoutIfExists(timeoutId);
   throw lastError;
 }
