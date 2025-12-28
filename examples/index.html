@@ -8,15 +8,19 @@
   </head>
   <body class="wide">
     <header>
-      <h1>wl-request <span style="color: var(--color-accent-cyan); font-size: 0.5em; vertical-align: middle;">// EXAMPLES</span></h1>
+      <div class="blueprint-marker top-right"></div>
+      <div class="blueprint-marker bottom-left"></div>
+      <h1 data-number="01">wl-request <span class="accent-text">// EXAMPLES</span></h1>
       <p class="subtitle">探索下一代请求库的功能特性与集成方案</p>
     </header>
 
     <main>
-      <div class="category">
-        <h2>01. 基础示例</h2>
+      <div class="category" data-number="01">
+        <h2>基础示例</h2>
         <div class="examples-grid">
           <a href="basic/index.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>基础用法</h2>
             <p>掌握 GET/POST 请求、生命周期钩子及全局配置的核心概念。</p>
             <span class="path">basic/index.html</span>
@@ -24,34 +28,44 @@
         </div>
       </div>
 
-      <div class="category">
-        <h2>02. 核心功能</h2>
+      <div class="category" data-number="02">
+        <h2>核心功能</h2>
         <div class="examples-grid">
           <a href="features/cache.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>智能缓存</h2>
             <p>内置内存与存储缓存策略，显著提升应用性能与响应速度。</p>
             <span class="path">features/cache.html</span>
           </a>
 
           <a href="features/retry.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>自动重试</h2>
             <p>配置指数退避算法，优雅处理网络波动与临时故障。</p>
             <span class="path">features/retry.html</span>
           </a>
 
           <a href="features/idempotent.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>幂等性控制</h2>
             <p>防止重复提交，确保关键业务操作的安全性与一致性。</p>
             <span class="path">features/idempotent.html</span>
           </a>
 
           <a href="features/parallel.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>并发请求</h2>
             <p>高效处理多任务并发，最大化网络吞吐量。</p>
             <span class="path">features/parallel.html</span>
           </a>
 
           <a href="features/serial.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>串行请求</h2>
             <p>严格控制请求顺序，处理有依赖关系的复杂业务流。</p>
             <span class="path">features/serial.html</span>
@@ -59,22 +73,28 @@
         </div>
       </div>
 
-      <div class="category">
-        <h2>03. 适配器集成</h2>
+      <div class="category" data-number="03">
+        <h2>适配器集成</h2>
         <div class="examples-grid">
           <a href="adapters/axios.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>Axios 适配器</h2>
             <p>无缝集成 Axios 生态，复用现有拦截器与配置。</p>
             <span class="path">adapters/axios.html</span>
           </a>
 
           <a href="adapters/cache-memory.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>内存缓存</h2>
             <p>高性能 LRU 内存缓存实现，适用于即时性数据。</p>
             <span class="path">adapters/cache-memory.html</span>
           </a>
 
           <a href="adapters/cache-indexeddb.html" class="example-card">
+            <div class="blueprint-marker top-left"></div>
+            <div class="blueprint-marker bottom-right"></div>
             <h2>IndexedDB 缓存</h2>
             <p>持久化大数据量存储，支持离线访问与状态恢复。</p>
             <span class="path">adapters/cache-indexeddb.html</span>
@@ -84,11 +104,10 @@
     </main>
 
     <script>
-      // 动态添加交错动画延迟
       document.querySelectorAll('.examples-grid').forEach(grid => {
         const cards = grid.querySelectorAll('.example-card');
         cards.forEach((card, index) => {
-          card.style.animationDelay = `${index * 0.1}s`;
+          card.style.animationDelay = `${index * 0.08}s`;
         });
       });
     </script>

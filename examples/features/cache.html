@@ -7,18 +7,20 @@
     <link rel="stylesheet" href="../style.css">
   </head>
   <body>
-    <nav style="margin-bottom: var(--spacing-4);">
-      <a href="../index.html" style="color: var(--color-accent-cyan); text-decoration: none; font-family: var(--font-mono); font-size: 0.9rem;">&larr; 返回索引</a>
+    <nav>
+      <a href="../index.html" class="back-link">返回示例索引</a>
     </nav>
 
     <header>
-      <h1>缓存功能</h1>
+      <div class="blueprint-marker top-right"></div>
+      <div class="blueprint-marker bottom-left"></div>
+      <h1 data-number="01">缓存功能</h1>
       <p class="subtitle">演示如何使用缓存功能来减少重复请求，提升性能</p>
     </header>
 
     <main>
       <section>
-        <h2>操作控制 / ACTIONS</h2>
+        <h3>操作控制 / ACTIONS</h3>
         <div class="actions">
           <button id="btn-cache">缓存请求</button>
           <button id="btn-cache-expired">缓存过期示例</button>
@@ -27,7 +29,7 @@
       </section>
 
       <section>
-        <h2>执行日志 / OUTPUT</h2>
+        <h3>执行日志 / OUTPUT</h3>
         <div id="output"></div>
       </section>
     </main>

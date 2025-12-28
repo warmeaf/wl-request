@@ -7,18 +7,20 @@
     <link rel="stylesheet" href="../style.css">
   </head>
   <body>
-    <nav style="margin-bottom: var(--spacing-4);">
-      <a href="../index.html" style="color: var(--color-accent-cyan); text-decoration: none; font-family: var(--font-mono); font-size: 0.9rem;">&larr; 返回索引</a>
+    <nav>
+      <a href="../index.html" class="back-link">返回示例索引</a>
     </nav>
 
     <header>
-      <h1>内存缓存适配器</h1>
+      <div class="blueprint-marker top-right"></div>
+      <div class="blueprint-marker bottom-left"></div>
+      <h1 data-number="01">内存缓存适配器</h1>
       <p class="subtitle">高性能 LRU 内存缓存实现，适用于即时性数据</p>
     </header>
 
     <main>
       <section>
-        <h2>操作控制 / ACTIONS</h2>
+        <h3>操作控制 / ACTIONS</h3>
         <div class="actions">
           <button id="btn-memory-cache">内存缓存测试</button>
           <button id="btn-clear">清空日志</button>
@@ -26,7 +28,7 @@
       </section>
 
       <section>
-        <h2>执行日志 / OUTPUT</h2>
+        <h3>执行日志 / OUTPUT</h3>
         <div id="output"></div>
       </section>
     </main>
