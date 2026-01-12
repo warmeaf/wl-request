@@ -1,6 +1,7 @@
 // IndexedDB 缓存适配器实现
 
 import type { CacheAdapter } from '@wl-request/core';
+import { calculateExpiresAt, serializeResponse } from '@wl-request/core';
 
 /**
  * 缓存项结构
@@ -97,29 +98,6 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
   }
 
   /**
-   * 序列化 Response 对象，移除不可序列化的 raw 属性
-   * @param value 要序列化的值
-   * @returns 序列化后的值
-   */
-  private serializeValue(value: unknown): unknown {
-    if (
-      value &&
-      typeof value === 'object' &&
-      'status' in value &&
-      'statusText' in value &&
-      'headers' in value &&
-      'data' in value
-    ) {
-      const { raw: _raw, ...serializableResponse } = value as {
-        raw?: unknown;
-        [key: string]: unknown;
-      };
-      return serializableResponse;
-    }
-    return value;
-  }
-
-  /**
    * 获取缓存值
    * @param key 缓存键
    * @returns Promise<T | null> 缓存值，不存在或已过期时返回 null
@@ -149,7 +127,7 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
             // 延迟删除到当前事务完成后
             transaction.oncomplete = () => {
               this.delete(key).catch(() => {
-                // 忽略删除错误
+                // 静默处理：过期项删除失败不影响主流程
               });
             };
             resolve(null);
@@ -159,7 +137,9 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
           resolve(item.value as T);
         };
       });
-    } catch (_error) {
+    } catch {
+      // 静默处理：IndexedDB 访问可能因各种原因失败
+      // 缓存失败不应阻断主流程，返回 null 表示未命中
       return null;
     }
   }
@@ -176,10 +156,8 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
     const transaction = db.transaction([this.storeName], 'readwrite');
     const store = transaction.objectStore(this.storeName);
 
-    const expiresAt =
-      ttl !== undefined ? (ttl <= 0 ? Date.now() - 1 : Date.now() + ttl) : Number.MAX_SAFE_INTEGER;
-
-    const serializedValue = this.serializeValue(value);
+    const expiresAt = calculateExpiresAt(ttl);
+    const serializedValue = serializeResponse(value);
 
     const item: CacheItem = {
       key,
@@ -223,6 +201,7 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         };
       });
     } catch (error) {
+      // 静默处理 IndexedDB 相关错误，其他错误继续抛出
       if (error instanceof Error && error.message.includes('IndexedDB')) {
         return;
       }
@@ -252,6 +231,7 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         };
       });
     } catch (error) {
+      // 静默处理 IndexedDB 相关错误，其他错误继续抛出
       if (error instanceof Error && error.message.includes('IndexedDB')) {
         return;
       }
@@ -291,7 +271,7 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
             // 延迟删除到当前事务完成后
             transaction.oncomplete = () => {
               this.delete(key).catch(() => {
-                // 忽略删除错误
+                // 静默处理：过期项删除失败不影响主流程
               });
             };
           }
@@ -299,7 +279,9 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
           resolve(isValid);
         };
       });
-    } catch (_error) {
+    } catch {
+      // 静默处理：IndexedDB 访问可能因各种原因失败
+      // 返回 false 表示缓存不存在
       return false;
     }
   }
@@ -333,8 +315,8 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         request.onerror = () =>
           reject(new Error(`Failed to cleanup cache: ${request.error?.message}`));
       });
-    } catch (_error) {
-      // 忽略错误
+    } catch {
+      // 静默处理：cleanup 是维护性操作，失败不应影响主流程
     }
   }
 }

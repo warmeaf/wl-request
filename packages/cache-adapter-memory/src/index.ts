@@ -1,6 +1,7 @@
 // 内存缓存适配器实现
 
 import type { CacheAdapter } from '@wl-request/core';
+import { calculateExpiresAt } from '@wl-request/core';
 
 /**
  * 缓存项结构
@@ -23,13 +24,11 @@ interface CacheAdapterOptions {
 /**
  * 内存缓存适配器
  * 基于内存 Map 存储，支持 TTL 过期清理和最大容量限制
- * 使用 O(1) 的 LRU 淘汰算法
+ * 利用 Map 的迭代顺序特性实现 O(1) 的 LRU 淘汰算法
  */
 export class MemoryCacheAdapter implements CacheAdapter {
-  /** 内存存储 */
+  /** 内存存储（Map 保持插入顺序，用于 LRU） */
   private cache: Map<string, CacheItem> = new Map();
-  /** 访问顺序追踪（用于 LRU 淘汰） */
-  private accessOrder: string[] = [];
   /** 最大缓存条目数 */
   private maxEntries?: number;
 
@@ -42,39 +41,26 @@ export class MemoryCacheAdapter implements CacheAdapter {
   }
 
   /**
-   * 更新访问顺序
+   * 更新访问顺序（O(1) 复杂度）
+   * 利用 Map 的迭代顺序特性：delete 后 set 会将 key 移到末尾
    * @param key 缓存键
    */
   private updateAccessOrder(key: string): void {
-    // 从现有位置移除（如果存在）
-    const index = this.accessOrder.indexOf(key);
-    if (index !== -1) {
-      this.accessOrder.splice(index, 1);
-    }
-    // 添加到末尾（表示最近访问）
-    this.accessOrder.push(key);
-  }
-
-  /**
-   * 从访问顺序中移除键
-   * @param key 缓存键
-   */
-  private removeFromAccessOrder(key: string): void {
-    const index = this.accessOrder.indexOf(key);
-    if (index !== -1) {
-      this.accessOrder.splice(index, 1);
+    const item = this.cache.get(key);
+    if (item) {
+      this.cache.delete(key);
+      this.cache.set(key, item);
     }
   }
 
   /**
    * 淘汰最旧的缓存项（O(1) 复杂度）
+   * Map 的第一个元素就是最早插入（最旧）的
    */
   private evictOldest(): void {
-    // 访问顺序数组的第一个元素就是最旧的
-    const oldestKey = this.accessOrder[0];
-    if (oldestKey) {
+    const oldestKey = this.cache.keys().next().value;
+    if (oldestKey !== undefined) {
       this.cache.delete(oldestKey);
-      this.accessOrder.shift();
     }
   }
 
@@ -93,7 +79,6 @@ export class MemoryCacheAdapter implements CacheAdapter {
     // 检查是否过期
     if (Date.now() > item.expiresAt) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
       return null;
     }
 
@@ -111,14 +96,11 @@ export class MemoryCacheAdapter implements CacheAdapter {
    * @returns Promise<void>
    */
   async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
-    const expiresAt =
-      ttl !== undefined ? (ttl <= 0 ? Date.now() - 1 : Date.now() + ttl) : Number.MAX_SAFE_INTEGER;
+    const expiresAt = calculateExpiresAt(ttl);
 
-    // 新键或更新键都更新访问顺序
-    if (!this.cache.has(key)) {
-      this.accessOrder.push(key);
-    } else {
-      this.updateAccessOrder(key);
+    // 如果 key 已存在，先删除以更新访问顺序
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
     }
 
     this.cache.set(key, {
@@ -139,7 +121,6 @@ export class MemoryCacheAdapter implements CacheAdapter {
    */
   async delete(key: string): Promise<void> {
     this.cache.delete(key);
-    this.removeFromAccessOrder(key);
   }
 
   /**
@@ -148,7 +129,6 @@ export class MemoryCacheAdapter implements CacheAdapter {
    */
   async clear(): Promise<void> {
     this.cache.clear();
-    this.accessOrder = [];
   }
 
   /**
@@ -166,7 +146,6 @@ export class MemoryCacheAdapter implements CacheAdapter {
     // 检查是否过期
     if (Date.now() > item.expiresAt) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
       return false;
     }
 
@@ -194,7 +173,6 @@ export class MemoryCacheAdapter implements CacheAdapter {
     // 删除过期的键
     for (const key of expiredKeys) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
     }
   }
 }

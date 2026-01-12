@@ -4,6 +4,11 @@ import type { RequestConfig, RequestInstance } from '../interfaces';
 import { createRequest } from '../request';
 
 /**
+ * 废弃警告标志，确保只警告一次
+ */
+let hasDeprecationWarned = false;
+
+/**
  * 创建请求实例工厂函数
  * 这是该模块的核心函数，用于创建请求实例
  * @param config 请求配置
@@ -27,14 +32,17 @@ export function createRequestHook<T = unknown>(config: RequestConfig<T>): Reques
  *       但 `useRequest` 保持导出以确保向后兼容性
  */
 export function useRequest<T = unknown>(config: RequestConfig<T>): RequestInstance<T> {
-  // 开发环境发出废弃警告
-  const _global = globalThis as { process?: { env?: { NODE_ENV?: string } } };
-  if (typeof _global.process !== 'undefined' && _global.process.env?.NODE_ENV !== 'production') {
-    console.warn(
-      '[wl-request] useRequest is deprecated and will be removed in v2.0. ' +
-        'Use `createRequest` or `createRequestHook` instead. ' +
-        'Note: Despite the "use" prefix, this is NOT a React Hook.'
-    );
+  // 开发环境发出废弃警告（只警告一次）
+  if (!hasDeprecationWarned) {
+    const _global = globalThis as { process?: { env?: { NODE_ENV?: string } } };
+    if (typeof _global.process !== 'undefined' && _global.process.env?.NODE_ENV !== 'production') {
+      console.warn(
+        '[wl-request] useRequest is deprecated and will be removed in v2.0. ' +
+          'Use `createRequest` or `createRequestHook` instead. ' +
+          'Note: Despite the "use" prefix, this is NOT a React Hook.'
+      );
+      hasDeprecationWarned = true;
+    }
   }
 
   return createRequest(config);

@@ -1,6 +1,7 @@
 // LocalStorage 缓存适配器实现
 
 import type { CacheAdapter } from '../interfaces';
+import { calculateExpiresAt, serializeResponse } from '../utils';
 
 /**
  * 缓存项结构
@@ -40,29 +41,6 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
   }
 
   /**
-   * 序列化 Response 对象，移除不可序列化的 raw 属性
-   * @param value 要序列化的值
-   * @returns 序列化后的值
-   */
-  private serializeValue(value: unknown): unknown {
-    if (
-      value &&
-      typeof value === 'object' &&
-      'status' in value &&
-      'statusText' in value &&
-      'headers' in value &&
-      'data' in value
-    ) {
-      const { raw: _raw, ...serializableResponse } = value as {
-        raw?: unknown;
-        [key: string]: unknown;
-      };
-      return serializableResponse;
-    }
-    return value;
-  }
-
-  /**
    * 获取缓存值
    * @param key 缓存键
    * @returns Promise<T | null> 缓存值，不存在或已过期时返回 null
@@ -81,10 +59,8 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
    */
   async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
     const fullKey = this.getFullKey(key);
-    const expiresAt =
-      ttl !== undefined ? (ttl <= 0 ? Date.now() - 1 : Date.now() + ttl) : Number.MAX_SAFE_INTEGER;
-
-    const serializedValue = this.serializeValue(value);
+    const expiresAt = calculateExpiresAt(ttl);
+    const serializedValue = serializeResponse(value);
 
     const item: CacheItem = {
       value: serializedValue,
@@ -126,22 +102,27 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
       try {
         item = JSON.parse(stored) as CacheItem;
       } catch {
+        // JSON 解析失败，移除无效数据
         localStorage.removeItem(fullKey);
         return null;
       }
 
       if (typeof item.expiresAt !== 'number') {
+        // 数据格式无效，移除
         localStorage.removeItem(fullKey);
         return null;
       }
 
       if (Date.now() > item.expiresAt) {
+        // 已过期，移除
         localStorage.removeItem(fullKey);
         return null;
       }
 
       return item;
     } catch {
+      // 静默处理：localStorage 访问可能因隐私模式等原因失败
+      // 缓存失败不应阻断主流程，返回 null 表示未命中
       return null;
     }
   }
@@ -205,6 +186,7 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
                 keysToRemove.push(key);
               }
             } catch {
+              // JSON 解析失败，视为无效数据需要清理
               keysToRemove.push(key);
             }
           }
@@ -215,7 +197,7 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
         localStorage.removeItem(key);
       });
     } catch {
-      // 忽略错误
+      // 静默处理：cleanup 是维护性操作，失败不应影响主流程
     }
   }
 }

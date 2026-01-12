@@ -46,32 +46,17 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * 清理 timeoutId 的辅助函数
- */
-function clearTimeoutIfExists(timeoutId: ReturnType<typeof setTimeout> | undefined): void {
-  if (timeoutId) {
-    clearTimeout(timeoutId);
-  }
-}
-
-/**
  * 超时追踪器
  * 用于追踪重试过程中的总超时时间
+ * 基于时间差计算，无需定时器
  */
 class TimeoutTracker {
   private startTime: number;
   private timeoutMs: number | undefined;
-  private timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   constructor(totalTimeout?: number) {
     this.startTime = Date.now();
     this.timeoutMs = totalTimeout;
-    // 设置超时定时器（仅在需要时）
-    if (totalTimeout !== undefined) {
-      this.timeoutId = setTimeout(() => {
-        // 超时后不需要主动 reject，由 checkTimeout() 检测
-      }, totalTimeout);
-    }
   }
 
   /**
@@ -92,7 +77,6 @@ class TimeoutTracker {
    */
   checkTimeout(): void {
     if (this.isTimeout()) {
-      this.cleanup();
       throw new Error(`Retry total timeout exceeded (${this.timeoutMs}ms)`);
     }
   }
@@ -108,14 +92,6 @@ class TimeoutTracker {
     }
     const elapsed = Date.now() - this.startTime;
     return elapsed + delayMs < this.timeoutMs;
-  }
-
-  /**
-   * 清理定时器
-   */
-  cleanup(): void {
-    clearTimeoutIfExists(this.timeoutId);
-    this.timeoutId = undefined;
   }
 }
 
@@ -145,7 +121,6 @@ export async function retryRequest<T>(
 
   try {
     const result = await requestFn();
-    timeoutTracker.cleanup();
     return result;
   } catch (error) {
     lastError = error as RequestError | Error;
@@ -161,7 +136,6 @@ export async function retryRequest<T>(
     if (condition) {
       const shouldRetry = condition(lastError as RequestError, retryCount - 1);
       if (!shouldRetry) {
-        timeoutTracker.cleanup();
         throw lastError;
       }
     }
@@ -170,7 +144,6 @@ export async function retryRequest<T>(
 
     // 检查延迟后是否会超时
     if (!timeoutTracker.canDelayAfter(delayTime)) {
-      timeoutTracker.cleanup();
       throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
     }
 
@@ -181,13 +154,11 @@ export async function retryRequest<T>(
 
     try {
       const result = await requestFn();
-      timeoutTracker.cleanup();
       return result;
     } catch (error) {
       lastError = error as RequestError | Error;
     }
   }
 
-  timeoutTracker.cleanup();
   throw lastError;
 }
