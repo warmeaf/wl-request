@@ -67,16 +67,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/adapter-fetch:
-    dependencies:
-      '@wl-request/core':
-        specifier: workspace:*
-        version: link:../core
-    devDependencies:
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   packages/cache-adapter-indexeddb:
     dependencies:
       '@wl-request/core':
@@ -98,10 +88,6 @@ importers:
         version: 5.9.3
 
   packages/core:
-    dependencies:
-      '@wl-request/adapter-fetch':
-        specifier: workspace:*
-        version: link:../adapter-fetch
     devDependencies:
       typescript:
         specifier: ^5.9.3

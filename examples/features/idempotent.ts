@@ -1,8 +1,7 @@
 // 幂等功能示例
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
 import type { RequestConfig } from '@wl-request/core';
-import { configure, LocalStorageCacheAdapter, useRequest } from '@wl-request/core';
+import { configure, FetchAdapter, LocalStorageCacheAdapter, useRequest } from '@wl-request/core';
 
 const localStorageCacheAdapter = new LocalStorageCacheAdapter();
 

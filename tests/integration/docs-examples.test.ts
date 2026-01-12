@@ -1,10 +1,10 @@
 // 文档示例验证测试
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestAdapter, RequestConfig, Response } from '@wl-request/core';
 import {
   configure,
+  FetchAdapter,
   resetAdapters,
   resetConfig,
   setDefaultAdapter,

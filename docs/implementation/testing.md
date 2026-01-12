@@ -13,10 +13,6 @@ packages/
 │       ├── features/
 │       └── adapters/
 │
-├── adapter-fetch/
-│   ├── src/
-│   └── tests/              # 适配器测试
-│
 └── adapter-axios/
     ├── src/
     └── tests/              # 适配器测试
@@ -45,7 +41,7 @@ pnpm test:watch
 pnpm --filter @wl-request/core test
 
 # 运行适配器测试
-pnpm --filter @wl-request/adapter-fetch test
+pnpm --filter @wl-request/adapter-axios test
 ```
 
 **生成覆盖率报告：**

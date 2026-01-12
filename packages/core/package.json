@@ -27,9 +27,7 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "@wl-request/adapter-fetch": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^5.9.3"
   }

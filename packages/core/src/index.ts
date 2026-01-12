@@ -11,7 +11,7 @@ export {
   resetAdapters,
   setDefaultAdapter,
 } from './adapters';
-
+export { FetchAdapter } from './adapters/fetch';
 export { LocalStorageCacheAdapter } from './adapters/local-storage-cache-adapter';
 
 // ============================================================================

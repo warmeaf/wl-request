@@ -1,9 +1,8 @@
 // IndexedDB 缓存适配器示例
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
 import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb';
 import type { RequestConfig } from '@wl-request/core';
-import { configure, useRequest } from '@wl-request/core';
+import { configure, FetchAdapter, useRequest } from '@wl-request/core';
 
 const indexedDBCacheAdapter = new IndexedDBCacheAdapter();
 

@@ -6,7 +6,6 @@
     "baseUrl": "..",
     "paths": {
       "@wl-request/core": ["./packages/core/src"],
-      "@wl-request/adapter-fetch": ["./packages/adapter-fetch/src"],
       "@wl-request/adapter-axios": ["./packages/adapter-axios/src"],
       "@wl-request/cache-adapter-memory": ["./packages/cache-adapter-memory/src"],
       "@wl-request/cache-adapter-indexeddb": ["./packages/cache-adapter-indexeddb/src"]

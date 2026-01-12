@@ -46,7 +46,7 @@ async function createFetchAdapter(): Promise<RequestAdapter> {
     return fetchAdapterInstance;
   }
 
-  const { FetchAdapter } = await import('@wl-request/adapter-fetch');
+  const { FetchAdapter } = await import('./fetch');
   const adapter = new FetchAdapter() as RequestAdapter;
   fetchAdapterInstance = adapter;
   return adapter;

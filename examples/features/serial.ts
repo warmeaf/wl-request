@@ -1,8 +1,7 @@
 // 串行请求示例
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
 import type { RequestConfig } from '@wl-request/core';
-import { configure, useSerialRequests } from '@wl-request/core';
+import { configure, FetchAdapter, useSerialRequests } from '@wl-request/core';
 
 configure({
   baseURL: 'https://jsonplaceholder.typicode.com',

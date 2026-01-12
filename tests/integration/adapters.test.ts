@@ -1,10 +1,10 @@
 // 适配器集成测试
 
-import { FetchAdapter } from '@wl-request/adapter-fetch';
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory';
 import type { RequestConfig, Response } from '@wl-request/core';
 import {
   configure,
+  FetchAdapter,
   resetAdapters,
   resetConfig,
   setDefaultAdapter,

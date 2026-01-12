@@ -12,7 +12,6 @@ export default defineConfig(({ command }) => {
       resolve: {
         alias: {
           '@wl-request/core': resolve(__dirname, 'packages/core/src'),
-          '@wl-request/adapter-fetch': resolve(__dirname, 'packages/adapter-fetch/src'),
           '@wl-request/adapter-axios': resolve(__dirname, 'packages/adapter-axios/src'),
           '@wl-request/cache-adapter-memory': resolve(
             __dirname,

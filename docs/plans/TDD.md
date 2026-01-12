@@ -113,25 +113,7 @@
 
 ### 第三阶段：适配器实现（TDD）
 
-#### 3.1 Fetch 适配器
-
-**测试先行** (`packages/adapter-fetch/tests/index.test.ts`)
-
-- 测试：基本 GET 请求
-- 测试：POST/PUT/DELETE 请求
-- 测试：请求头设置
-- 测试：超时控制
-- 测试：错误处理
-- 测试：响应数据解析
-
-**实现** (`packages/adapter-fetch/src/index.ts`)
-
-- 实现 `RequestAdapter` 接口
-- 基于原生 `fetch` API
-- 支持请求/响应拦截
-- 支持超时控制
-
-#### 3.2 Axios 适配器
+#### 3.1 Axios 适配器
 
 **测试先行** (`packages/adapter-axios/tests/index.test.ts`)
 
@@ -146,7 +128,7 @@
 - 基于 `axios` 库
 - 保持与 axios API 的兼容性
 
-#### 3.3 内存缓存适配器
+#### 3.2 内存缓存适配器
 
 **测试先行** (`packages/cache-adapter-memory/tests/index.test.ts`)
 
@@ -161,7 +143,7 @@
 - 基于内存 Map 存储
 - 支持 TTL 过期清理
 
-#### 3.4 IndexedDB 缓存适配器
+#### 3.3 IndexedDB 缓存适配器
 
 **测试先行** (`packages/cache-adapter-indexeddb/tests/index.test.ts`)
 

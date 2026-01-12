@@ -16,9 +16,8 @@
 
 本仓库采用 monorepo 结构，核心能力与适配器拆分为多个独立 package：
 
-- `@wl-request/core`：核心请求流程、特性（重试、缓存、并行/串行、幂等）、Hooks 等
-- `@wl-request/adapter-axios`：基于 axios 的请求适配器
-- `@wl-request/adapter-fetch`：基于浏览器 `fetch` 的请求适配器
+- `@wl-request/core`：核心请求流程、特性（重试、缓存、并行/串行、幂等）、Hooks、默认的 Fetch 适配器等
+- `@wl-request/adapter-axios`：基于 axios 的请求适配器（可选）
 - `@wl-request/cache-adapter-memory`：内存缓存适配器
 - `@wl-request/cache-adapter-indexeddb`：基于 IndexedDB 的持久化缓存适配器
 
@@ -28,13 +27,13 @@
 
 ```bash
 # pnpm
-pnpm add @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-indexeddb
+pnpm add @wl-request/core @wl-request/cache-adapter-indexeddb
 
 # yarn
-yarn add @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-indexeddb
+yarn add @wl-request/core @wl-request/cache-adapter-indexeddb
 
 # npm
-npm install @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter-indexeddb
+npm install @wl-request/core @wl-request/cache-adapter-indexeddb
 ```
 
 ## 快速上手
@@ -44,14 +43,13 @@ npm install @wl-request/core @wl-request/adapter-axios @wl-request/cache-adapter
 在应用入口处配置全局默认设置：
 
 ```ts
-import { configure } from '@wl-request/core'
-import { AxiosAdapter } from '@wl-request/adapter-axios'
+import { configure, FetchAdapter } from '@wl-request/core'
 import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb'
 
 configure({
   baseURL: 'https://api.example.com',
   timeout: 10000,
-  adapter: new AxiosAdapter(),
+  adapter: new FetchAdapter(),
   cacheAdapter: new IndexedDBCacheAdapter(),
 })
 ```
