@@ -68,36 +68,8 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
    * @returns Promise<T | null> 缓存值，不存在或已过期时返回 null
    */
   async get<T = unknown>(key: string): Promise<T | null> {
-    try {
-      const fullKey = this.getFullKey(key);
-      const stored = localStorage.getItem(fullKey);
-
-      if (!stored) {
-        return null;
-      }
-
-      let item: CacheItem;
-      try {
-        item = JSON.parse(stored) as CacheItem;
-      } catch {
-        localStorage.removeItem(fullKey);
-        return null;
-      }
-
-      if (typeof item.expiresAt !== 'number') {
-        localStorage.removeItem(fullKey);
-        return null;
-      }
-
-      if (Date.now() > item.expiresAt) {
-        localStorage.removeItem(fullKey);
-        return null;
-      }
-
-      return item.value as T;
-    } catch {
-      return null;
-    }
+    const item = await this.validateAndGetItem(key);
+    return item ? (item.value as T) : null;
   }
 
   /**
@@ -137,6 +109,44 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
   }
 
   /**
+   * 验证并获取缓存项，处理过期和无效数据
+   * @param key 缓存键
+   * @returns Promise<CacheItem | null> 有效的缓存项，否则返回 null
+   */
+  private async validateAndGetItem(key: string): Promise<CacheItem | null> {
+    try {
+      const fullKey = this.getFullKey(key);
+      const stored = localStorage.getItem(fullKey);
+
+      if (!stored) {
+        return null;
+      }
+
+      let item: CacheItem;
+      try {
+        item = JSON.parse(stored) as CacheItem;
+      } catch {
+        localStorage.removeItem(fullKey);
+        return null;
+      }
+
+      if (typeof item.expiresAt !== 'number') {
+        localStorage.removeItem(fullKey);
+        return null;
+      }
+
+      if (Date.now() > item.expiresAt) {
+        localStorage.removeItem(fullKey);
+        return null;
+      }
+
+      return item;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * 删除缓存值
    * @param key 缓存键
    * @returns Promise<void>
@@ -172,36 +182,7 @@ export class LocalStorageCacheAdapter implements CacheAdapter {
    * @returns Promise<boolean> 缓存存在返回 true，否则返回 false
    */
   async has(key: string): Promise<boolean> {
-    try {
-      const fullKey = this.getFullKey(key);
-      const stored = localStorage.getItem(fullKey);
-
-      if (!stored) {
-        return false;
-      }
-
-      let item: CacheItem;
-      try {
-        item = JSON.parse(stored) as CacheItem;
-      } catch {
-        localStorage.removeItem(fullKey);
-        return false;
-      }
-
-      if (typeof item.expiresAt !== 'number') {
-        localStorage.removeItem(fullKey);
-        return false;
-      }
-
-      if (Date.now() > item.expiresAt) {
-        localStorage.removeItem(fullKey);
-        return false;
-      }
-
-      return true;
-    } catch {
-      return false;
-    }
+    return (await this.validateAndGetItem(key)) !== null;
   }
 
   /**

@@ -146,9 +146,12 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
           }
 
           if (Date.now() > item.expiresAt) {
-            this.delete(key).catch(() => {
-              // 忽略删除错误
-            });
+            // 延迟删除到当前事务完成后
+            transaction.oncomplete = () => {
+              this.delete(key).catch(() => {
+                // 忽略删除错误
+              });
+            };
             resolve(null);
             return;
           }
@@ -282,15 +285,18 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
             return;
           }
 
-          if (Date.now() > item.expiresAt) {
-            this.delete(key).catch(() => {
-              // 忽略删除错误
-            });
-            resolve(false);
-            return;
+          const isValid = Date.now() <= item.expiresAt;
+
+          if (!isValid) {
+            // 延迟删除到当前事务完成后
+            transaction.oncomplete = () => {
+              this.delete(key).catch(() => {
+                // 忽略删除错误
+              });
+            };
           }
 
-          resolve(true);
+          resolve(isValid);
         };
       });
     } catch (_error) {
@@ -309,7 +315,6 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
       const store = transaction.objectStore(this.storeName);
       const index = store.index('expiresAt');
       const now = Date.now();
-      const keysToDelete: string[] = [];
 
       return new Promise<void>((resolve, reject) => {
         const request = index.openCursor(IDBKeyRange.upperBound(now));
@@ -317,20 +322,11 @@ export class IndexedDBCacheAdapter implements CacheAdapter {
         request.onsuccess = () => {
           const cursor = request.result;
           if (cursor) {
-            keysToDelete.push(cursor.key as string);
+            // 在同一个事务中删除
+            cursor.delete();
             cursor.continue();
           } else {
-            // 删除所有过期的键
-            const deleteTransaction = db.transaction([this.storeName], 'readwrite');
-            const deleteStore = deleteTransaction.objectStore(this.storeName);
-
-            keysToDelete.forEach((key) => {
-              deleteStore.delete(key);
-            });
-
-            deleteTransaction.oncomplete = () => resolve();
-            deleteTransaction.onerror = () =>
-              reject(new Error(`Failed to cleanup cache: ${deleteTransaction.error?.message}`));
+            resolve();
           }
         };
 

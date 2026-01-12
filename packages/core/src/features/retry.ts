@@ -55,6 +55,71 @@ function clearTimeoutIfExists(timeoutId: ReturnType<typeof setTimeout> | undefin
 }
 
 /**
+ * 超时追踪器
+ * 用于追踪重试过程中的总超时时间
+ */
+class TimeoutTracker {
+  private startTime: number;
+  private timeoutMs: number | undefined;
+  private timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  constructor(totalTimeout?: number) {
+    this.startTime = Date.now();
+    this.timeoutMs = totalTimeout;
+    // 设置超时定时器（仅在需要时）
+    if (totalTimeout !== undefined) {
+      this.timeoutId = setTimeout(() => {
+        // 超时后不需要主动 reject，由 checkTimeout() 检测
+      }, totalTimeout);
+    }
+  }
+
+  /**
+   * 检查是否已超时
+   * @returns 是否超时
+   */
+  isTimeout(): boolean {
+    if (this.timeoutMs === undefined) {
+      return false;
+    }
+    const elapsed = Date.now() - this.startTime;
+    return elapsed >= this.timeoutMs;
+  }
+
+  /**
+   * 检查超时，如果超时则抛出错误
+   * @throws 如果超时则抛出错误
+   */
+  checkTimeout(): void {
+    if (this.isTimeout()) {
+      this.cleanup();
+      throw new Error(`Retry total timeout exceeded (${this.timeoutMs}ms)`);
+    }
+  }
+
+  /**
+   * 检查是否可以在指定延迟后执行重试
+   * @param delayMs 计划延迟的时间（毫秒）
+   * @returns 是否可以在延迟后执行
+   */
+  canDelayAfter(delayMs: number): boolean {
+    if (this.timeoutMs === undefined) {
+      return true;
+    }
+    const elapsed = Date.now() - this.startTime;
+    return elapsed + delayMs < this.timeoutMs;
+  }
+
+  /**
+   * 清理定时器
+   */
+  cleanup(): void {
+    clearTimeoutIfExists(this.timeoutId);
+    this.timeoutId = undefined;
+  }
+}
+
+/**
  * 使用重试机制执行请求函数
  * @param requestFn 请求函数，返回 Promise
  * @param retryConfig 重试配置
@@ -76,69 +141,53 @@ export async function retryRequest<T>(
   let lastError: RequestError | Error;
   let retryCount = 0;
 
-  const startTime = Date.now();
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  // 用于超时时拒绝的 Promise（用于检测超时条件，不直接 await）
-  const timeoutRejector = totalTimeout
-    ? new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          reject(new Error(`Retry total timeout exceeded (${totalTimeout}ms)`));
-        }, totalTimeout);
-      })
-    : null;
+  const timeoutTracker = new TimeoutTracker(totalTimeout);
 
   try {
     const result = await requestFn();
-    clearTimeoutIfExists(timeoutId);
+    timeoutTracker.cleanup();
     return result;
   } catch (error) {
     lastError = error as RequestError | Error;
   }
 
   while (retryCount < count) {
-    // 先增加计数，确保 condition 和 delay 计算使用正确的值
     retryCount++;
 
-    if (timeoutRejector && totalTimeout) {
-      const elapsed = Date.now() - startTime;
-      const remaining = totalTimeout - elapsed;
-      if (remaining <= 0) {
-        clearTimeoutIfExists(timeoutId);
-        throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
-      }
-    }
+    // 检查超时
+    timeoutTracker.checkTimeout();
 
+    // 检查自定义重试条件
     if (condition) {
       const shouldRetry = condition(lastError as RequestError, retryCount - 1);
       if (!shouldRetry) {
-        clearTimeoutIfExists(timeoutId);
+        timeoutTracker.cleanup();
         throw lastError;
       }
     }
 
     const delayTime = calculateDelay(retryCount - 1, baseDelay, strategy, maxDelay);
 
-    if (timeoutRejector && totalTimeout) {
-      const elapsed = Date.now() - startTime;
-      const remaining = totalTimeout - elapsed;
-      if (delayTime > remaining) {
-        clearTimeoutIfExists(timeoutId);
-        throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
-      }
+    // 检查延迟后是否会超时
+    if (!timeoutTracker.canDelayAfter(delayTime)) {
+      timeoutTracker.cleanup();
+      throw new Error(`Retry total timeout exceeded (${totalTimeout}ms)`);
     }
 
     await delay(delayTime);
 
+    // 延迟后再次检查超时
+    timeoutTracker.checkTimeout();
+
     try {
       const result = await requestFn();
-      clearTimeoutIfExists(timeoutId);
+      timeoutTracker.cleanup();
       return result;
     } catch (error) {
       lastError = error as RequestError | Error;
     }
   }
 
-  clearTimeoutIfExists(timeoutId);
+  timeoutTracker.cleanup();
   throw lastError;
 }

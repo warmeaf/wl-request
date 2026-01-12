@@ -247,6 +247,32 @@ describe('FetchAdapter', () => {
       const callUrl = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0];
       expect(callUrl).toContain('a=value');
     });
+
+    it('URL 已有查询参数时应该使用 & 连接', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({}),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse as unknown as Response);
+
+      const config: RequestConfig = {
+        url: '/api/test?existing=param',
+        params: {
+          page: 1,
+        },
+      };
+
+      await adapter.request(config);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/test?existing=param&page=1',
+        expect.any(Object)
+      );
+    });
   });
 
   describe('baseURL 处理', () => {
@@ -288,6 +314,30 @@ describe('FetchAdapter', () => {
       const config: RequestConfig = {
         baseURL: 'https://api.example.com/',
         url: '/api/test',
+      };
+
+      await adapter.request(config);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.example.com/api/test',
+        expect.any(Object)
+      );
+    });
+
+    it('url 不以 / 开头时应该自动添加', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({}),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse as unknown as Response);
+
+      const config: RequestConfig = {
+        baseURL: 'https://api.example.com',
+        url: 'api/test',
       };
 
       await adapter.request(config);
@@ -347,6 +397,59 @@ describe('FetchAdapter', () => {
 
       const callOptions = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1];
       expect(callOptions.body).toBeUndefined();
+    });
+
+    it('已有 Content-Type 时不应该自动添加', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({}),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse as unknown as Response);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        data: { name: 'test' },
+      };
+
+      await adapter.request(config);
+
+      const callHeaders = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1]?.headers;
+      expect(callHeaders['Content-Type']).toBe('text/plain');
+    });
+
+    it('已有小写 content-type 时不应该自动添加', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({}),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse as unknown as Response);
+
+      const config: RequestConfig = {
+        url: '/api/test',
+        method: 'POST',
+        headers: {
+          'content-type': 'text/plain',
+        },
+        data: { name: 'test' },
+      };
+
+      await adapter.request(config);
+
+      const callHeaders = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1]?.headers;
+      expect(callHeaders['content-type']).toBe('text/plain');
+      expect(callHeaders['Content-Type']).toBeUndefined();
     });
   });
 
@@ -556,6 +659,19 @@ describe('FetchAdapter', () => {
 
       // 应该返回 text 解析的内容作为后备
       expect(response.data).toBe('<image binary data>');
+    });
+
+    it('应该处理非 Error 类型的网络错误', async () => {
+      global.fetch = vi.fn().mockRejectedValue('Network failure string');
+
+      const config: RequestConfig = {
+        url: '/api/test',
+      };
+
+      const error = await adapter.request(config).catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toBe('Request failed');
+      expect((error as { code?: string }).code).toBe('NETWORK_ERROR');
     });
   });
 

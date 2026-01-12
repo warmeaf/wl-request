@@ -504,6 +504,28 @@ describe('withCache', () => {
       await expect(cachedRequest()).rejects.toThrow('Request failed');
       expect(requestFn).toHaveBeenCalledTimes(2);
     });
+
+    it('未提供 cacheAdapter 且未设置默认适配器时应该抛出错误', async () => {
+      // 先重置默认缓存适配器
+      resetDefaultCacheAdapter();
+
+      const response: Response<string> = {
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        data: 'data',
+      };
+
+      const requestFn = vi.fn().mockResolvedValue(response);
+      const cacheConfig: CacheConfig = {
+        key: 'test-key',
+        ttl: 1000,
+        // 没有提供 cacheAdapter
+      };
+
+      // 应该抛出错误
+      expect(() => withCache(requestFn, cacheConfig)).toThrow('No cache adapter provided');
+    });
   });
 
   describe('resetDefaultCacheAdapter', () => {

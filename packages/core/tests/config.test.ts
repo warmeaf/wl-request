@@ -238,6 +238,79 @@ describe('全局配置管理', () => {
     });
   });
 
+  describe('adapter 和 cacheAdapter 配置', () => {
+    it('adapter 配置应该直接覆盖而不是深度合并', () => {
+      const globalAdapter = {
+        request: async () => ({ status: 200, statusText: 'OK', headers: {}, data: {} }),
+      };
+      const localAdapter = {
+        request: async () => ({ status: 201, statusText: 'Created', headers: {}, data: {} }),
+      };
+
+      configure({
+        adapter: globalAdapter as unknown as GlobalConfig['adapter'],
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        adapter: localAdapter as unknown as RequestConfig['adapter'],
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      // adapter 应该直接使用 local 的，而不是合并
+      expect(merged.adapter).toBe(localAdapter);
+    });
+
+    it('cacheAdapter 配置应该直接覆盖而不是深度合并', () => {
+      const globalCacheAdapter = {
+        get: async () => null,
+        set: async () => {},
+        delete: async () => {},
+        clear: async () => {},
+        has: async () => false,
+      };
+      const localCacheAdapter = {
+        get: async () => 'cached',
+        set: async () => {},
+        delete: async () => {},
+        clear: async () => {},
+        has: async () => true,
+      };
+
+      configure({
+        cacheAdapter: globalCacheAdapter as unknown as GlobalConfig['cacheAdapter'],
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        cacheAdapter: localCacheAdapter as unknown as RequestConfig['cacheAdapter'],
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      // cacheAdapter 应该直接使用 local 的，而不是合并
+      expect(merged.cacheAdapter).toBe(localCacheAdapter);
+    });
+
+    it('全局 onBefore 在本地未定义时应该使用全局值', () => {
+      const globalOnBefore = vi.fn();
+
+      configure({
+        onBefore: globalOnBefore,
+      });
+
+      const localConfig: RequestConfig = {
+        url: '/api/users',
+        // onBefore 未定义
+      };
+
+      const merged = mergeConfig(getGlobalConfig(), localConfig);
+
+      expect(merged.onBefore).toBe(globalOnBefore);
+    });
+  });
+
   describe('边界情况', () => {
     it('全局配置为空时，请求配置应该保持不变', () => {
       const localConfig: RequestConfig = {

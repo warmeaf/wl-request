@@ -358,6 +358,33 @@ describe('MemoryCacheAdapter', () => {
     });
   });
 
+  describe('更新已存在的缓存键', () => {
+    it('更新已存在的键时应该更新访问顺序', async () => {
+      const adapterWithLimit = new MemoryCacheAdapter({ maxEntries: 3 });
+
+      // 设置 3 个缓存项
+      await adapterWithLimit.set('key-1', 'value-1');
+      await adapterWithLimit.set('key-2', 'value-2');
+      await adapterWithLimit.set('key-3', 'value-3');
+
+      // 更新 key-1，使其成为最近访问的
+      await adapterWithLimit.set('key-1', 'value-1-updated');
+
+      // 添加新项，应该淘汰 key-2（现在是最旧的）
+      await adapterWithLimit.set('key-4', 'value-4');
+
+      // key-1 应该保留（因为被更新过）
+      expect(await adapterWithLimit.get('key-1')).toBe('value-1-updated');
+
+      // key-2 应该被淘汰（因为是最旧的）
+      expect(await adapterWithLimit.get('key-2')).toBeNull();
+
+      // key-3, key-4 应该保留
+      expect(await adapterWithLimit.get('key-3')).toBe('value-3');
+      expect(await adapterWithLimit.get('key-4')).toBe('value-4');
+    });
+  });
+
   describe('maxEntries 容量限制', () => {
     it('应该接受 maxEntries 配置参数', () => {
       const adapterWithLimit = new MemoryCacheAdapter({ maxEntries: 100 });
