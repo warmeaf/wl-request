@@ -9,10 +9,10 @@
 默认适配器，基于浏览器原生 `fetch` API。
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 // 创建请求实例（使用默认的 Fetch 适配器）
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com'
@@ -59,11 +59,11 @@ setDefaultAdapter(new AxiosAdapter())
 ### 实例级切换
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { AxiosAdapter } from '@wl-request/adapter-axios'
 
 // 创建请求实例并指定适配器
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   adapter: new AxiosAdapter(),
@@ -89,10 +89,10 @@ loadData()
 - `prefix`：缓存键前缀，默认为 'wl-request:'
 
 ```typescript
-import { useRequest, LocalStorageCacheAdapter } from '@wl-request/core'
+import { createRequest, LocalStorageCacheAdapter } from '@wl-request/core'
 
 // 使用默认前缀
-const request1 = useRequest({
+const request1 = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -104,7 +104,7 @@ const request1 = useRequest({
 })
 
 // 使用自定义前缀（用于多实例隔离）
-const request2 = useRequest({
+const request2 = createRequest({
   url: '/api/posts',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -129,11 +129,11 @@ loadData()
 内存缓存适配器，适用于临时缓存。
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
 
 // 创建请求实例并使用 Memory 缓存适配器
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -160,12 +160,13 @@ new MemoryCacheAdapter({ maxEntries: 100 })  // 限制最多缓存 100 个条目
 new MemoryCacheAdapter()                     // 无限制
 ```
 
-- `maxEntries`：最大缓存条目数，超过时淘汰**最早过期**的项（而不是最早添加的项）
+- `maxEntries`：最大缓存条目数，超过时淘汰**最早添加**的项（LRU 策略）
 
 ::: info
 淘汰策略说明：
-当缓存数量超过 maxEntries 时，会删除 **expiresAt 最小**（即最早过期）的条目，
-而不是最早添加的条目。这种策略可以优先保留更长时间有效的缓存。
+当缓存数量超过 maxEntries 时，会删除 **最早添加**（最旧）的条目，
+这是标准的 LRU（Least Recently Used）策略。访问缓存时会更新其访问顺序，
+保留最近使用的项，淘汰最久未使用的项。
 :::
 
 ### IndexedDB 适配器
@@ -177,17 +178,17 @@ IndexedDB 缓存适配器，适用于大数据量缓存。
 - `storeName`：对象存储名称，默认为 'cache'
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb'
 
 // 创建 IndexedDB 缓存适配器（使用默认值）
-const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db')
+// const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db')
 
 // 或自定义数据库名称和对象存储名称
 const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db', 'cache')
 
 // 创建请求实例并使用 IndexedDB 缓存适配器
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',

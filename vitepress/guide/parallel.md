@@ -190,11 +190,11 @@ loadData()
 或者使用 `Promise.allSettled` 手动处理：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const usersRequest = useRequest({ url: '/users', method: 'GET', baseURL: 'https://api.example.com' })
-const postsRequest = useRequest({ url: '/posts', method: 'GET', baseURL: 'https://api.example.com' })
-const invalidRequest = useRequest({ url: '/invalid', method: 'GET', baseURL: 'https://api.example.com' })
+const usersRequest = createRequest({ url: '/users', method: 'GET', baseURL: 'https://api.example.com' })
+const postsRequest = createRequest({ url: '/posts', method: 'GET', baseURL: 'https://api.example.com' })
+const invalidRequest = createRequest({ url: '/invalid', method: 'GET', baseURL: 'https://api.example.com' })
 
 async function loadData() {
   const results = await Promise.allSettled([

@@ -5,9 +5,9 @@
 ## 基本使用
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -51,7 +51,9 @@ loadData()
 **三种设置方式**：
 1. **请求配置中显式传入**：
    ```typescript
-   const request = useRequest({
+   import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
+
+   const request = createRequest({
      cache: {
        cacheAdapter: new MemoryCacheAdapter()
      }
@@ -89,10 +91,10 @@ loadData()
 - `prefix`：缓存键前缀，默认为 'wl-request:'
 
 ```typescript
-import { useRequest, LocalStorageCacheAdapter } from '@wl-request/core'
+import { createRequest, LocalStorageCacheAdapter } from '@wl-request/core'
 
 // 使用默认前缀
-const request1 = useRequest({
+const request1 = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -104,7 +106,7 @@ const request1 = useRequest({
 })
 
 // 使用自定义前缀（用于多实例隔离）
-const request2 = useRequest({
+const request2 = createRequest({
   url: '/api/posts',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -128,10 +130,10 @@ loadData()
 内存缓存，数据不持久化。
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -157,13 +159,7 @@ new MemoryCacheAdapter({ maxEntries: 100 })  // 限制最多缓存 100 个条目
 new MemoryCacheAdapter()                     // 无限制
 ```
 
-- `maxEntries`：最大缓存条目数，超过时淘汰**最早过期**的项（而不是最早添加的项）
-
-::: info
-淘汰策略说明：
-当缓存数量超过 maxEntries 时，会删除 **expiresAt 最小**（即最早过期）的条目，
-而不是最早添加的条目。这种策略可以优先保留更长时间有效的缓存。
-:::
+ - `maxEntries`：最大缓存条目数，超过时采用 LRU 策略淘汰最久未访问的项
 
 ### IndexedDB
 
@@ -174,16 +170,19 @@ new MemoryCacheAdapter()                     // 无限制
 - `storeName`：对象存储名称，默认为 'cache'
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { IndexedDBCacheAdapter } from '@wl-request/cache-adapter-indexeddb'
 
-// 创建 IndexedDB 缓存适配器（使用默认值）
+// 使用默认值
+const cacheAdapter = new IndexedDBCacheAdapter()
+
+// 或自定义数据库名称
 const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db')
 
 // 或自定义数据库名称和对象存储名称
-const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db', 'cache')
+const cacheAdapter = new IndexedDBCacheAdapter('my-cache-db', 'custom-cache')
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -226,9 +225,9 @@ await cacheAdapter.clear()
 适用于不经常变化的数据：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/dictionary',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -251,7 +250,7 @@ loadDictionary()
 适用于会话期间相对稳定的数据：
 
 ```typescript
-const request = useRequest({
+const request = createRequest({
   url: '/api/user/profile',
   method: 'GET',
   cache: {
@@ -271,7 +270,7 @@ const handleLoad = async () => {
 适用于短期内重复访问的列表：
 
 ```typescript
-const request = useRequest({
+const request = createRequest({
   url: '/api/products',
   method: 'GET',
   cache: {

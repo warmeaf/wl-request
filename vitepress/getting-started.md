@@ -14,13 +14,11 @@ pnpm add @wl-request/cache-adapter-indexeddb
 
 ## 基本使用
 
-### 使用 Hook API
-
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 // 创建请求实例
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET'
 })
@@ -46,11 +44,11 @@ loadData()
 ### 方式一：在请求配置中直接传入适配器（推荐）
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { AxiosAdapter } from '@wl-request/adapter-axios'
 
 // 创建请求实例并指定适配器
-const request = useRequest({
+const request = createRequest({
   url: '/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -81,9 +79,12 @@ setDefaultAdapter(axiosAdapter)
 ## 启用缓存
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest, setDefaultCacheAdapter, LocalStorageCacheAdapter } from '@wl-request/core'
 
-const request = useRequest({
+// 设置默认缓存适配器
+setDefaultCacheAdapter(new LocalStorageCacheAdapter())
+
+const request = createRequest({
   url: '/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -104,9 +105,9 @@ loadData()
 ## 启用重试
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',

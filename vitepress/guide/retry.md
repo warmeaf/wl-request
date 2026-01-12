@@ -5,9 +5,9 @@
 ## 基本使用
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -75,9 +75,9 @@ loadData()
 如果配置了此选项，则所有重试（包括初始请求）必须在总超时时间内完成，否则会抛出超时错误。
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -110,12 +110,12 @@ loadData()
 
 ### 线性策略
 
-每次重试延迟时间相同。
+延迟时间按线性增长。
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -139,9 +139,9 @@ loadData()
 延迟时间呈指数增长。
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -165,9 +165,9 @@ loadData()
 每次重试使用固定的延迟时间（`delay` 配置项的值）。
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -189,7 +189,7 @@ loadData()
 如果需要立即重试（不延迟），可以将 `delay` 设置为 `0`：
 
 ```typescript
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -206,9 +206,9 @@ const request = useRequest({
 只在特定情况下重试：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -235,9 +235,9 @@ loadData()
 ### API 网关超时
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/data',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -260,9 +260,9 @@ loadData()
 ### 临时服务不可用
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/data',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -285,9 +285,9 @@ loadData()
 ### 网络波动
 
 ```typescript
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const request = useRequest({
+const request = createRequest({
   url: '/api/data',
   method: 'GET',
   baseURL: 'https://api.example.com',

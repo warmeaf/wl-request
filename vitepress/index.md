@@ -19,7 +19,7 @@ features:
     details: 基于 TypeScript，清晰的代码组织结构，易于理解和维护
   - icon: 🔌
     title: 适配器模式
-    details: 完全兼容适配对象（fetch、axios 等），每个适配器是独立的包
+    details: 提供 axios 适配器，每个适配器是独立的包
   - icon: 💾
     title: 多种缓存方式
     details: 支持 localStorage、内存、IndexedDB 等多种缓存存储方式

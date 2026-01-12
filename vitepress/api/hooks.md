@@ -1,13 +1,13 @@
 # Hooks API
 
-## useRequest
+## createRequest
 
 基础请求 Hook。创建一个请求实例，返回 `send()` 和 `cancel()` 方法。
 
 ### 类型签名
 
 ```typescript
-function useRequest<T = unknown>(config: RequestConfig<T>): RequestInstance<T>
+function createRequest<T = unknown>(config: RequestConfig<T>): RequestInstance<T>
 ```
 
 ### 参数
@@ -25,10 +25,10 @@ function useRequest<T = unknown>(config: RequestConfig<T>): RequestInstance<T>
 ### 示例
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 // 创建请求实例
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET'
 })

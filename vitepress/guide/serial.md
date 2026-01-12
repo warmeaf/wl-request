@@ -143,21 +143,21 @@ loadData()
 对于有依赖关系的请求，可以手动顺序调用：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const userRequest = useRequest({
+const userRequest = createRequest({
   url: '/user',
   method: 'GET',
   baseURL: 'https://api.example.com'
 })
 
-const postsRequest = useRequest({
+const postsRequest = createRequest({
   url: '/posts',
   method: 'GET',
   baseURL: 'https://api.example.com'
 })
 
-const commentsRequest = useRequest({
+const commentsRequest = createRequest({
   url: '/comments',
   method: 'GET',
   baseURL: 'https://api.example.com'
@@ -222,11 +222,11 @@ loadData()
 手动顺序调用多个请求时，同样会有错误中断行为：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const userRequest = useRequest({ url: '/user', method: 'GET', baseURL: 'https://api.example.com' })
-const invalidRequest = useRequest({ url: '/invalid', method: 'GET', baseURL: 'https://api.example.com' })
-const postsRequest = useRequest({ url: '/posts', method: 'GET', baseURL: 'https://api.example.com' })
+const userRequest = createRequest({ url: '/user', method: 'GET', baseURL: 'https://api.example.com' })
+const invalidRequest = createRequest({ url: '/invalid', method: 'GET', baseURL: 'https://api.example.com' })
+const postsRequest = createRequest({ url: '/posts', method: 'GET', baseURL: 'https://api.example.com' })
 
 async function loadData() {
   try {
@@ -248,9 +248,9 @@ loadData()
 ### 数据依赖查询
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const userRequest = useRequest({ url: '/user', method: 'GET', baseURL: 'https://api.example.com' })
+const userRequest = createRequest({ url: '/user', method: 'GET', baseURL: 'https://api.example.com' })
 
 async function loadUserOrders() {
   // 获取用户 -> 获取用户的订单 -> 获取订单详情
@@ -258,7 +258,7 @@ async function loadUserOrders() {
   const user = userResponse.data
   const userId = user.id
   
-  const ordersRequest = useRequest({ 
+  const ordersRequest = createRequest({ 
     url: `/users/${userId}/orders`, 
     method: 'GET',
     baseURL: 'https://api.example.com'
@@ -268,7 +268,7 @@ async function loadUserOrders() {
   const orderId = orders[0]?.id
   
   if (orderId) {
-    const orderDetailsRequest = useRequest({ 
+    const orderDetailsRequest = createRequest({ 
       url: `/orders/${orderId}`, 
       method: 'GET',
       baseURL: 'https://api.example.com'
@@ -285,11 +285,11 @@ loadUserOrders()
 ### 多步骤操作
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 async function processOrder() {
   // 创建订单 -> 添加订单项 -> 提交支付
-  const orderRequest = useRequest({ 
+  const orderRequest = createRequest({ 
     url: '/orders', 
     method: 'POST',
     baseURL: 'https://api.example.com',
@@ -299,7 +299,7 @@ async function processOrder() {
   const order = orderResponse.data
   const orderId = order.id
   
-  const orderItemRequest = useRequest({ 
+  const orderItemRequest = createRequest({ 
     url: '/order-items', 
     method: 'POST',
     baseURL: 'https://api.example.com',
@@ -310,7 +310,7 @@ async function processOrder() {
   })
   const orderItemResponse = await orderItemRequest.send()
   
-  const paymentRequest = useRequest({ 
+  const paymentRequest = createRequest({ 
     url: '/payments', 
     method: 'POST',
     baseURL: 'https://api.example.com',
@@ -327,11 +327,11 @@ processOrder()
 ### 分页加载
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
-const page1Request = useRequest({ url: '/posts?page=1', method: 'GET', baseURL: 'https://api.example.com' })
-const page2Request = useRequest({ url: '/posts?page=2', method: 'GET', baseURL: 'https://api.example.com' })
-const page3Request = useRequest({ url: '/posts?page=3', method: 'GET', baseURL: 'https://api.example.com' })
+const page1Request = createRequest({ url: '/posts?page=1', method: 'GET', baseURL: 'https://api.example.com' })
+const page2Request = createRequest({ url: '/posts?page=2', method: 'GET', baseURL: 'https://api.example.com' })
+const page3Request = createRequest({ url: '/posts?page=3', method: 'GET', baseURL: 'https://api.example.com' })
 
 async function loadPages() {
   const page1Response = await page1Request.send()

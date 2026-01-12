@@ -240,10 +240,6 @@ async function loadData() {
 loadData()
 ```
 
-::: tip
-推荐使用 `useRequest` 而不是 `createRequest` 函数。`useRequest` 提供了更简洁的 API。`createRequest` 主要用于需要显式创建实例的特殊场景。
-:::
-
 ## registerAdapter
 
 注册适配器。

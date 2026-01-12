@@ -21,10 +21,10 @@ configure({
 在请求实例中指定配置：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 // 创建请求实例并指定配置
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -87,7 +87,7 @@ loadData()
 
 ```typescript
 // 方式一：请求配置
-const request = useRequest({
+const request = createRequest({
   cache: { cacheAdapter: new MemoryCacheAdapter() }
 })
 
@@ -112,10 +112,10 @@ setDefaultCacheAdapter(new LocalStorageCacheAdapter())
 可以配置全局或实例级别的请求钩子：
 
 ```typescript
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 // 创建请求实例并配置钩子
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   baseURL: 'https://api.example.com',
@@ -189,11 +189,11 @@ onFinally: () => void | Promise<void>
 
 配置合并优先级（从高到低）：
 
-1. 请求实例配置（`useRequest` / `createRequest` 传入的 `config`）
+1. 请求实例配置（`createRequest` 传入的 `config`）
 2. 全局配置（通过 `configure` 设置）
 
 ```typescript
-import { configure, useRequest } from '@wl-request/core'
+import { configure, createRequest } from '@wl-request/core'
 
 // 全局配置
 configure({
@@ -202,14 +202,14 @@ configure({
 })
 
 // 请求实例配置（覆盖全局配置）
-const request = useRequest({
+const request = createRequest({
   url: '/api/users',
   method: 'GET',
   timeout: 10000 // 覆盖全局的 5000ms，使用 10000ms
 })
 
 // 另一个请求实例配置（覆盖全局配置）
-const request2 = useRequest({
+const request2 = createRequest({
   url: '/api/posts',
   method: 'GET',
   timeout: 3000 // 覆盖全局的 5000ms，使用 3000ms
