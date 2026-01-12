@@ -16,10 +16,25 @@
 
 本仓库采用 monorepo 结构，核心能力与适配器拆分为多个独立 package：
 
-- `@wl-request/core`：核心请求流程、特性（重试、缓存、并行/串行、幂等）、Hooks、默认的 Fetch 适配器等
+- `@wl-request/core`：核心请求流程、特性（重试、缓存、并行/串行、幂等）、Hooks、Fetch 适配器、LocalStorage 缓存适配器等
 - `@wl-request/adapter-axios`：基于 axios 的请求适配器（可选）
-- `@wl-request/cache-adapter-memory`：内存缓存适配器
-- `@wl-request/cache-adapter-indexeddb`：基于 IndexedDB 的持久化缓存适配器
+- `@wl-request/cache-adapter-memory`：内存缓存适配器（页面刷新失效，需额外安装）
+- `@wl-request/cache-adapter-indexeddb`：基于 IndexedDB 的持久化缓存适配器（需额外安装）
+
+## 缓存适配器对比
+
+本库提供了三种缓存适配器，可根据需求选择：
+
+| 适配器 | 来源 | 存储方式 | 持久化 | 容量 | 适用场景 |
+|--------|------|----------|--------|------|----------|
+| `LocalStorageCacheAdapter` | `@wl-request/core` | localStorage | 是 | ~5-10MB | 简单持久化，无需额外安装 |
+| `MemoryCacheAdapter` | `@wl-request/cache-adapter-memory` | 内存 Map | 否 | 受内存限制 | 临时缓存，页面刷新失效 |
+| `IndexedDBCacheAdapter` | `@wl-request/cache-adapter-indexeddb` | IndexedDB | 是 | 大容量（GB级别） | 大数据量持久化缓存 |
+
+### 选择建议
+- 小数据量、简单场景：使用 `LocalStorageCacheAdapter`（已内置）
+- 临时数据、无需持久化：使用 `MemoryCacheAdapter`
+- 大数据量、需要持久化：使用 `IndexedDBCacheAdapter`
 
 ## 安装
 
@@ -38,6 +53,8 @@ npm install @wl-request/core @wl-request/cache-adapter-indexeddb
 
 ## 快速上手
 
+> ⚠️ **重要提示**：`useRequest` 已被标记为废弃，将在 v2.0 版本中移除。建议使用 `createRequest` 替代。尽管 `useRequest` 仍然可用且保持向后兼容，但新项目请使用 `createRequest` 以避免未来升级时的迁移成本。
+
 ### 1. 全局初始化
 
 在应用入口处配置全局默认设置：
@@ -54,7 +71,7 @@ configure({
 })
 ```
 
-### 2. 在组件中使用 `useRequest`
+### 2. 在组件中使用 `createRequest`
 
 下面以 Vue 组件为例，展示最基础的使用方式：
 
@@ -72,13 +89,13 @@ configure({
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 
 const data = ref<any[] | null>(null)
 const loading = ref(false)
 const error = ref<Error | null>(null)
 
-const { send } = useRequest({
+const { send } = createRequest({
   url: '/api/users',
   method: 'GET',
   onBefore: () => {
@@ -111,9 +128,9 @@ const handleRefresh = () => {
 ### 请求重试
 
 ```ts
-import { useRequest, RETRY_STRATEGY } from '@wl-request/core'
+import { createRequest, RETRY_STRATEGY } from '@wl-request/core'
 
-const { send } = useRequest({
+const { send } = createRequest({
   url: '/api/data',
   retry: {
     count: 3,
@@ -128,12 +145,12 @@ await send()
 ### 请求缓存（内存缓存）
 
 ```ts
-import { useRequest } from '@wl-request/core'
+import { createRequest } from '@wl-request/core'
 import { MemoryCacheAdapter } from '@wl-request/cache-adapter-memory'
 
 const cacheAdapter = new MemoryCacheAdapter()
 
-const { send } = useRequest({
+const { send } = createRequest({
   url: '/api/users',
   cache: {
     key: 'users-list',
@@ -141,6 +158,29 @@ const { send } = useRequest({
     cacheAdapter,
   },
 })
+
+await send()
+```
+
+### 串行请求
+
+```ts
+import { useSerialRequests } from '@wl-request/core'
+
+const { send } = useSerialRequests(
+  [
+    { url: '/api/user' },
+    { url: '/api/posts' },
+    { url: '/api/comments' },
+  ],
+  {
+    onSuccess: (results) => {
+      // results[0] = /api/user 的结果
+      // results[1] = /api/posts 的结果
+      // results[2] = /api/comments 的结果
+    },
+  }
+)
 
 await send()
 ```
@@ -173,6 +213,7 @@ pnpm install
 - 本地开发示例站点：`pnpm dev`
 - 运行所有包的构建：`pnpm build`
 - 运行测试：`pnpm test`
+- 运行测试监听模式：`pnpm test:watch`
 - 查看测试覆盖率：`pnpm test:coverage`
 - 代码格式化：`pnpm format`
 - 代码检查：`pnpm check`
