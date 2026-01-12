@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit --project examples/tsconfig.json && tsc --noEmit --project tsconfig.test.json",
     "commitlint": "commitlint --edit",
     "dev": "vite",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @wl-request/core build && pnpm -r --filter=!@wl-request/core build",
     "build:vite": "vite build",
     "preview": "vite preview",
     "test": "vitest",
